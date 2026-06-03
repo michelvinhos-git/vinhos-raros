@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vinho | Vinhos Raros</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar detail-topbar">
+      <a class="brand" href="index.html" aria-label="Voltar para Vinhos Raros">
+        <span class="brand-mark">VR</span>
+        <span>Vinhos Raros</span>
+      </a>
+      <a class="back-link" href="index.html">Voltar ao catalogo</a>
+      <button class="cart-button" type="button" data-cart-toggle aria-label="Abrir carrinho">
+        <span class="cart-icon" aria-hidden="true"></span>
+        <span data-cart-count>0</span>
+      </button>
+    </header>
+
+    <main data-detail-root></main>
+
+    <aside class="cart-panel" data-cart-panel aria-label="Carrinho">
+      <div class="cart-head">
+        <h2>Carrinho</h2>
+        <button class="icon-button" type="button" data-cart-toggle aria-label="Fechar carrinho">x</button>
+      </div>
+      <div class="cart-items" data-cart-items></div>
+      <div class="cart-total">
+        <span>Total</span>
+        <strong data-cart-total>R$ 0</strong>
+      </div>
+      <button class="checkout" type="button">Finalizar pedido</button>
+    </aside>
+    <div class="scrim" data-cart-toggle data-scrim></div>
+
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+    <script src="detail.js"></script>
+  </body>
+</html>

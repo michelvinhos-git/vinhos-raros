@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vinhos Raros | E-commerce de Vinhos</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="Vinhos Raros inicio">
+        <span class="brand-mark">VR</span>
+        <span>Vinhos Raros</span>
+      </a>
+      <nav class="nav-links" aria-label="Navegacao principal">
+        <a href="#catalogo">Catalogo</a>
+        <a href="#curadoria">Curadoria</a>
+        <a href="#beneficios">Beneficios</a>
+      </nav>
+      <button class="cart-button" type="button" data-cart-toggle aria-label="Abrir carrinho">
+        <span class="cart-icon" aria-hidden="true"></span>
+        <span data-cart-count>0</span>
+      </button>
+    </header>
+
+    <main>
+      <section class="hero">
+        <img src="assets/vinhos-raros-hero.png" alt="Garrafas raras de vinho em uma mesa de degustacao" />
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <p class="eyebrow">Garrafas de producao limitada</p>
+          <h1>Vinhos Raros</h1>
+          <p>
+            Uma curadoria de safras historicas, regioes lendarias e rotulos com pontuacoes altas para colecionar, presentear e abrir no momento certo.
+          </p>
+          <div class="hero-actions">
+            <a class="primary-action" href="#catalogo">Ver catalogo</a>
+            <a class="secondary-action" href="#curadoria">Como escolhemos</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="stats-band" id="beneficios" aria-label="Beneficios">
+        <div>
+          <strong>96+</strong>
+          <span>media dos destaques</span>
+        </div>
+        <div>
+          <strong>12h</strong>
+          <span>separacao climatizada</span>
+        </div>
+        <div>
+          <strong>100%</strong>
+          <span>procedencia verificada</span>
+        </div>
+      </section>
+
+      <section class="catalog-shell" id="catalogo">
+        <div class="section-heading">
+          <p class="eyebrow">Catalogo</p>
+          <h2>Garrafas em destaque</h2>
+        </div>
+        <div class="toolbar" role="group" aria-label="Filtros do catalogo">
+          <button class="filter active" type="button" data-filter="Todos">Todos</button>
+          <button class="filter" type="button" data-filter="Tinto">Tintos</button>
+          <button class="filter" type="button" data-filter="Espumante">Espumantes</button>
+          <button class="filter" type="button" data-filter="Fortificado">Fortificados</button>
+        </div>
+        <div class="wine-grid" data-wine-grid></div>
+      </section>
+
+      <section class="curation" id="curadoria">
+        <div>
+          <p class="eyebrow">Curadoria</p>
+          <h2>Informacao clara antes da compra</h2>
+        </div>
+        <p>
+          Cada pagina de vinho combina historia da safra, regiao, uvas, notas de degustacao, harmonizacoes e pontuacoes de referencia, em um formato inspirado em fichas tecnicas de grandes buscadores internacionais de vinho.
+        </p>
+      </section>
+    </main>
+
+    <aside class="cart-panel" data-cart-panel aria-label="Carrinho">
+      <div class="cart-head">
+        <h2>Carrinho</h2>
+        <button class="icon-button" type="button" data-cart-toggle aria-label="Fechar carrinho">x</button>
+      </div>
+      <div class="cart-items" data-cart-items></div>
+      <div class="cart-total">
+        <span>Total</span>
+        <strong data-cart-total>R$ 0</strong>
+      </div>
+      <button class="checkout" type="button">Finalizar pedido</button>
+    </aside>
+    <div class="scrim" data-cart-toggle data-scrim></div>
+
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
