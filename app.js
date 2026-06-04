@@ -25,6 +25,14 @@ function addToCart(id) {
 }
 
 function renderBottle(wine) {
+  if (wine.image) {
+    return `
+      <div class="bottle-wrap wine-photo-wrap" aria-hidden="true">
+        <img class="wine-photo" src="${wine.image}" alt="${wine.name}" loading="lazy" />
+        <span class="wine-photo-label" style="border-color:${wine.accent}; color:${wine.accent}">${wine.label}</span>
+      </div>
+    `;
+  }
   return `
     <div class="bottle-wrap" aria-hidden="true">
       <div class="bottle-neck" style="background:${wine.color}"></div>

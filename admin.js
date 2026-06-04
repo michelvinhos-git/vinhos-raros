@@ -22,6 +22,15 @@ const formError     = document.getElementById('form-error');
 const wineForm      = document.getElementById('wine-form');
 const scoresContainer = document.getElementById('scores-container');
 
+const imageFileInput   = document.getElementById('f-image-file');
+const imageHidden      = document.getElementById('f-image');
+const uploadPreviewWrap= document.getElementById('upload-preview-wrap');
+const uploadPreview    = document.getElementById('upload-preview');
+const uploadPlaceholder= document.getElementById('upload-placeholder');
+const uploadStatus     = document.getElementById('upload-status');
+const removeImageBtn   = document.getElementById('remove-image-btn');
+const uploadArea       = document.getElementById('upload-area');
+
 const confirmOverlay = document.getElementById('confirm-overlay');
 const confirmMsg     = document.getElementById('confirm-msg');
 const confirmCancel  = document.getElementById('confirm-cancel');
@@ -98,10 +107,14 @@ function renderTable() {
         <tbody>
           ${winesList.map(w => `
             <tr>
-              <td>
-                <span class="bottle-dot" style="background:${w.color}; margin-right:.6rem;"></span>
-                <strong>${w.name}</strong>
-                <div class="muted" style="font-size:.8rem;margin-top:.15rem;color:var(--muted)">${w.region || ''}</div>
+              <td style="display:flex;align-items:center;gap:.75rem;">
+                ${w.image
+                  ? `<img src="${w.image}" alt="" style="width:40px;height:40px;object-fit:cover;border-radius:8px;flex-shrink:0;" />`
+                  : `<span class="bottle-dot" style="background:${w.color};flex-shrink:0;"></span>`}
+                <div>
+                  <strong>${w.name}</strong>
+                  <div style="font-size:.8rem;margin-top:.15rem;color:var(--muted)">${w.region || ''}</div>
+                </div>
               </td>
               <td class="muted">${w.year || '—'}</td>
               <td><span class="badge">${w.type || '—'}</span></td>
@@ -127,6 +140,76 @@ function renderTable() {
     btn.addEventListener('click', () => openConfirmDelete(btn.dataset.id, btn.dataset.name));
   });
 }
+
+/* ── Image upload ── */
+function setImagePreview(url) {
+  if (url) {
+    imageHidden.value = url;
+    uploadPreview.src = url;
+    uploadPreviewWrap.style.display = 'block';
+    uploadPlaceholder.style.display = 'none';
+  } else {
+    imageHidden.value = '';
+    uploadPreview.src = '';
+    uploadPreviewWrap.style.display = 'none';
+    uploadPlaceholder.style.display = 'block';
+  }
+}
+
+function resetImageUpload() {
+  imageFileInput.value = '';
+  uploadStatus.textContent = '';
+  setImagePreview('');
+}
+
+imageFileInput.addEventListener('change', async () => {
+  const file = imageFileInput.files[0];
+  if (!file) return;
+  uploadStatus.textContent = 'Enviando imagem...';
+  uploadArea.style.borderColor = 'var(--gold)';
+  const formData = new FormData();
+  formData.append('image', file);
+  try {
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData
+    });
+    const data = await res.json();
+    if (!res.ok) { uploadStatus.textContent = data.error || 'Erro no upload.'; return; }
+    setImagePreview(data.url);
+    uploadStatus.textContent = 'Foto carregada com sucesso!';
+    uploadArea.style.borderColor = '#2ecc71';
+    setTimeout(() => { uploadStatus.textContent = ''; uploadArea.style.borderColor = 'var(--line)'; }, 2500);
+  } catch {
+    uploadStatus.textContent = 'Erro ao enviar imagem.';
+    uploadArea.style.borderColor = '#c0392b';
+  }
+});
+
+removeImageBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  resetImageUpload();
+});
+
+uploadArea.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  uploadArea.style.borderColor = 'var(--gold)';
+});
+uploadArea.addEventListener('dragleave', () => {
+  uploadArea.style.borderColor = 'var(--line)';
+});
+uploadArea.addEventListener('drop', (e) => {
+  e.preventDefault();
+  uploadArea.style.borderColor = 'var(--line)';
+  const file = e.dataTransfer.files[0];
+  if (file && /^image\//.test(file.type)) {
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    imageFileInput.files = dt.files;
+    imageFileInput.dispatchEvent(new Event('change'));
+  }
+});
 
 /* ── Modal ── */
 function buildScoreRows(scores = []) {
@@ -164,6 +247,7 @@ function openNewModal() {
   document.getElementById('f-color').value  = '#8b1537';
   document.getElementById('f-accent').value = '#d6b05b';
   buildScoreRows();
+  resetImageUpload();
   formError.textContent = '';
   openModal();
 }
@@ -190,6 +274,8 @@ function openEditModal(id) {
   document.getElementById('f-tasting').value = wine.tasting || '';
   document.getElementById('f-pairings').value= Array.isArray(wine.pairings) ? wine.pairings.join(', ') : '';
   buildScoreRows(wine.scores || []);
+  resetImageUpload();
+  if (wine.image) setImagePreview(wine.image);
   formError.textContent = '';
   openModal();
 }
@@ -240,6 +326,7 @@ formSave.addEventListener('click', async () => {
     tasting:  document.getElementById('f-tasting').value.trim(),
     pairings,
     scores,
+    image:    imageHidden.value || '',
   };
 
   if (!editingId) {

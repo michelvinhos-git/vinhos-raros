@@ -2,12 +2,35 @@ const express = require('express');
 const Database = require('better-sqlite3');
 const crypto = require('crypto');
 const path = require('path');
+const fs = require('fs');
+const multer = require('multer');
 
 const app = express();
 const PORT = 5000;
 
 app.use(express.json({ limit: '2mb' }));
 app.use(express.static(path.join(__dirname)));
+
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
+app.use('/uploads', express.static(uploadsDir));
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadsDir),
+  destination: (req, file, cb) => cb(null, uploadsDir),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, `${Date.now()}-${crypto.randomUUID().slice(0, 8)}${ext}`);
+  }
+});
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (/^image\/(jpeg|png|webp|gif)$/.test(file.mimetype)) cb(null, true);
+    else cb(new Error('Apenas imagens são permitidas (JPG, PNG, WEBP)'));
+  }
+});
 
 const db = new Database(path.join(__dirname, 'wines.db'));
 
@@ -29,9 +52,16 @@ db.exec(`
     history TEXT,
     tasting TEXT,
     pairings TEXT DEFAULT '[]',
-    scores TEXT DEFAULT '[]'
+    scores TEXT DEFAULT '[]',
+    image TEXT DEFAULT ''
   )
 `);
+
+try {
+  db.exec(`ALTER TABLE wines ADD COLUMN image TEXT DEFAULT ''`);
+} catch (e) {
+  if (!e.message.includes('duplicate column')) throw e;
+}
 
 const seedWines = [
   {
@@ -177,8 +207,8 @@ const seedWines = [
 const countRow = db.prepare('SELECT COUNT(*) as cnt FROM wines').get();
 if (countRow.cnt === 0) {
   const insert = db.prepare(`
-    INSERT INTO wines (id,name,year,region,type,grape,price,oldPrice,stock,color,accent,label,short,history,tasting,pairings,scores)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    INSERT INTO wines (id,name,year,region,type,grape,price,oldPrice,stock,color,accent,label,short,history,tasting,pairings,scores,image)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
   `);
   const insertAll = db.transaction((list) => {
     for (const w of list) {
@@ -186,7 +216,7 @@ if (countRow.cnt === 0) {
         w.id, w.name, w.year, w.region, w.type, w.grape,
         w.price, w.oldPrice, w.stock, w.color, w.accent,
         w.label, w.short, w.history, w.tasting,
-        JSON.stringify(w.pairings), JSON.stringify(w.scores)
+        JSON.stringify(w.pairings), JSON.stringify(w.scores), ''
       );
     }
   });
@@ -213,6 +243,7 @@ function parseWine(w) {
     stock: Number(w.stock),
     pairings: JSON.parse(w.pairings || '[]'),
     scores: JSON.parse(w.scores || '[]'),
+    image: w.image || '',
   };
 }
 
@@ -231,6 +262,12 @@ app.post('/api/auth/logout', requireAuth, (req, res) => {
   res.json({ ok: true });
 });
 
+app.post('/api/upload', requireAuth, upload.single('image'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Nenhuma imagem enviada' });
+  const url = `/uploads/${req.file.filename}`;
+  res.json({ url });
+});
+
 app.get('/api/wines', (req, res) => {
   const wines = db.prepare('SELECT * FROM wines ORDER BY rowid').all();
   res.json(wines.map(parseWine));
@@ -247,13 +284,13 @@ app.post('/api/wines', requireAuth, (req, res) => {
   if (!w.id || !w.name) return res.status(400).json({ error: 'id e name são obrigatórios' });
   try {
     db.prepare(`
-      INSERT INTO wines (id,name,year,region,type,grape,price,oldPrice,stock,color,accent,label,short,history,tasting,pairings,scores)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+      INSERT INTO wines (id,name,year,region,type,grape,price,oldPrice,stock,color,accent,label,short,history,tasting,pairings,scores,image)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     `).run(
       w.id, w.name, w.year, w.region, w.type, w.grape,
       w.price, w.oldPrice, w.stock, w.color, w.accent,
       w.label, w.short, w.history, w.tasting,
-      JSON.stringify(w.pairings || []), JSON.stringify(w.scores || [])
+      JSON.stringify(w.pairings || []), JSON.stringify(w.scores || []), w.image || ''
     );
     res.status(201).json(parseWine(db.prepare('SELECT * FROM wines WHERE id = ?').get(w.id)));
   } catch (e) {
@@ -267,13 +304,14 @@ app.post('/api/wines', requireAuth, (req, res) => {
 app.put('/api/wines/:id', requireAuth, (req, res) => {
   const w = req.body;
   const result = db.prepare(`
-    UPDATE wines SET name=?,year=?,region=?,type=?,grape=?,price=?,oldPrice=?,stock=?,color=?,accent=?,label=?,short=?,history=?,tasting=?,pairings=?,scores=?
+    UPDATE wines SET name=?,year=?,region=?,type=?,grape=?,price=?,oldPrice=?,stock=?,color=?,accent=?,label=?,short=?,history=?,tasting=?,pairings=?,scores=?,image=?
     WHERE id=?
   `).run(
     w.name, w.year, w.region, w.type, w.grape,
     w.price, w.oldPrice, w.stock, w.color, w.accent,
     w.label, w.short, w.history, w.tasting,
     JSON.stringify(w.pairings || []), JSON.stringify(w.scores || []),
+    w.image || '',
     req.params.id
   );
   if (result.changes === 0) return res.status(404).json({ error: 'Vinho não encontrado' });
@@ -281,8 +319,13 @@ app.put('/api/wines/:id', requireAuth, (req, res) => {
 });
 
 app.delete('/api/wines/:id', requireAuth, (req, res) => {
-  const result = db.prepare('DELETE FROM wines WHERE id = ?').run(req.params.id);
-  if (result.changes === 0) return res.status(404).json({ error: 'Vinho não encontrado' });
+  const wine = db.prepare('SELECT image FROM wines WHERE id = ?').get(req.params.id);
+  if (!wine) return res.status(404).json({ error: 'Vinho não encontrado' });
+  if (wine.image && wine.image.startsWith('/uploads/')) {
+    const filePath = path.join(__dirname, wine.image);
+    fs.unlink(filePath, () => {});
+  }
+  db.prepare('DELETE FROM wines WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
 });
 

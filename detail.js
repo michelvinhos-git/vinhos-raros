@@ -4,11 +4,16 @@ const root = document.querySelector("[data-detail-root]");
 
 function renderDetail(wine) {
   document.title = `${wine.name} | Vinhos Raros`;
+
+  const visual = wine.image
+    ? `<div class="detail-visual detail-photo-wrap">
+         <img class="detail-photo" src="${wine.image}" alt="${wine.name}" />
+       </div>`
+    : `<div class="detail-visual">${renderBottle(wine)}</div>`;
+
   root.innerHTML = `
     <section class="detail-hero">
-      <div class="detail-visual">
-        ${renderBottle(wine)}
-      </div>
+      ${visual}
       <div class="detail-summary">
         <p class="eyebrow">${wine.region} | ${wine.year}</p>
         <h1>${wine.name}</h1>
@@ -79,9 +84,7 @@ async function initDetail() {
     let wine;
     if (wineId) {
       const res = await fetch(`/api/wines/${encodeURIComponent(wineId)}`);
-      if (res.ok) {
-        wine = await res.json();
-      }
+      if (res.ok) wine = await res.json();
     }
     if (!wine) {
       const res = await fetch('/api/wines');
@@ -89,7 +92,6 @@ async function initDetail() {
       wine = all[0];
     }
     if (!wine) throw new Error('nenhum vinho encontrado');
-
     wines = wines.length ? wines : [wine];
     renderDetail(wine);
   } catch (e) {
