@@ -17,7 +17,6 @@ app.use('/uploads', express.static(uploadsDir));
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadsDir),
-  destination: (req, file, cb) => cb(null, uploadsDir),
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
     cb(null, `${Date.now()}-${crypto.randomUUID().slice(0, 8)}${ext}`);
@@ -224,14 +223,23 @@ if (countRow.cnt === 0) {
   console.log('Banco de dados populado com os vinhos iniciais.');
 }
 
-const sessions = new Set();
+db.exec(`
+  CREATE TABLE IF NOT EXISTS sessions (
+    token TEXT PRIMARY KEY,
+    created_at INTEGER DEFAULT (strftime('%s','now'))
+  )
+`);
+
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 
 function requireAuth(req, res, next) {
   const auth = req.headers.authorization || '';
-  if (!auth.startsWith('Bearer ') || !sessions.has(auth.slice(7))) {
+  if (!auth.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Não autorizado' });
   }
+  const token = auth.slice(7);
+  const row = db.prepare('SELECT token FROM sessions WHERE token = ?').get(token);
+  if (!row) return res.status(401).json({ error: 'Sessão expirada. Faça login novamente.' });
   next();
 }
 
@@ -253,12 +261,17 @@ app.post('/api/auth/login', (req, res) => {
     return res.status(401).json({ error: 'Senha incorreta' });
   }
   const token = crypto.randomUUID();
-  sessions.add(token);
+  db.prepare('INSERT INTO sessions (token) VALUES (?)').run(token);
   res.json({ token });
 });
 
+app.get('/api/auth/verify', requireAuth, (req, res) => {
+  res.json({ ok: true });
+});
+
 app.post('/api/auth/logout', requireAuth, (req, res) => {
-  sessions.delete(req.headers.authorization.slice(7));
+  const token = req.headers.authorization.slice(7);
+  db.prepare('DELETE FROM sessions WHERE token = ?').run(token);
   res.json({ ok: true });
 });
 

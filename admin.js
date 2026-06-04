@@ -383,7 +383,7 @@ confirmOk.addEventListener('click', async () => {
 
 /* ── Init ── */
 if (token) {
-  fetch('/api/wines').then(r => {
+  fetch('/api/auth/verify', { headers: authHeader() }).then(r => {
     if (r.ok) { showAdmin(); loadWines(); }
     else      { token = ''; sessionStorage.removeItem('vr_admin_token'); showLogin(); }
   }).catch(() => showLogin());
