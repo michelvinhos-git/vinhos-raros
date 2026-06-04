@@ -232,12 +232,17 @@ db.exec(`
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 
-function requireAuth(req, res, next) {
+function extractToken(req) {
   const auth = req.headers.authorization || '';
-  if (!auth.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Não autorizado' });
-  }
-  const token = auth.slice(7);
+  if (auth.startsWith('Bearer ')) return auth.slice(7);
+  if (req.headers['x-auth-token']) return req.headers['x-auth-token'];
+  if (req.query && req.query.token) return req.query.token;
+  return null;
+}
+
+function requireAuth(req, res, next) {
+  const token = extractToken(req);
+  if (!token) return res.status(401).json({ error: 'Não autorizado' });
   const row = db.prepare('SELECT token FROM sessions WHERE token = ?').get(token);
   if (!row) return res.status(401).json({ error: 'Sessão expirada. Faça login novamente.' });
   next();
@@ -270,7 +275,7 @@ app.get('/api/auth/verify', requireAuth, (req, res) => {
 });
 
 app.post('/api/auth/logout', requireAuth, (req, res) => {
-  const token = req.headers.authorization.slice(7);
+  const token = extractToken(req);
   db.prepare('DELETE FROM sessions WHERE token = ?').run(token);
   res.json({ ok: true });
 });
