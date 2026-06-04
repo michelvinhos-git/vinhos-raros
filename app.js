@@ -4,6 +4,8 @@ const currency = new Intl.NumberFormat("pt-BR", {
   maximumFractionDigits: 0
 });
 
+let wines = [];
+
 const cart = JSON.parse(localStorage.getItem("vinhosRarosCart") || "[]");
 
 function saveCart() {
@@ -102,7 +104,7 @@ function renderCatalog(filter = "Todos") {
               <h3>${wine.name}</h3>
               <p>${wine.short}</p>
               <div class="score-row">
-                <span>${wine.scores[0].score}</span>
+                <span>${wine.scores[0] ? wine.scores[0].score : ''}</span>
                 <small>${wine.type}</small>
               </div>
             </div>
@@ -134,6 +136,18 @@ function setupFilters() {
   });
 }
 
-setupCart();
-renderCatalog();
-setupFilters();
+async function init() {
+  try {
+    const res = await fetch('/api/wines');
+    if (!res.ok) throw new Error('Falha ao carregar vinhos');
+    wines = await res.json();
+  } catch (e) {
+    console.error('Erro ao carregar vinhos:', e);
+    wines = [];
+  }
+  setupCart();
+  renderCatalog();
+  setupFilters();
+}
+
+init();

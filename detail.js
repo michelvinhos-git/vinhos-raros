@@ -1,72 +1,100 @@
 const params = new URLSearchParams(window.location.search);
-const wine = wines.find((item) => item.id === params.get("id")) || wines[0];
+const wineId = params.get("id");
 const root = document.querySelector("[data-detail-root]");
 
-document.title = `${wine.name} | Vinhos Raros`;
-
-root.innerHTML = `
-  <section class="detail-hero">
-    <div class="detail-visual">
-      ${renderBottle(wine)}
-    </div>
-    <div class="detail-summary">
-      <p class="eyebrow">${wine.region} | ${wine.year}</p>
-      <h1>${wine.name}</h1>
-      <p>${wine.short}</p>
-      <div class="detail-facts">
-        <span>${wine.type}</span>
-        <span>${wine.grape}</span>
-        <span>${wine.stock} garrafas</span>
+function renderDetail(wine) {
+  document.title = `${wine.name} | Vinhos Raros`;
+  root.innerHTML = `
+    <section class="detail-hero">
+      <div class="detail-visual">
+        ${renderBottle(wine)}
       </div>
-      <div class="detail-price">
-        <strong>${currency.format(wine.price)}</strong>
-        <span>${currency.format(wine.oldPrice)}</span>
+      <div class="detail-summary">
+        <p class="eyebrow">${wine.region} | ${wine.year}</p>
+        <h1>${wine.name}</h1>
+        <p>${wine.short}</p>
+        <div class="detail-facts">
+          <span>${wine.type}</span>
+          <span>${wine.grape}</span>
+          <span>${wine.stock} garrafas</span>
+        </div>
+        <div class="detail-price">
+          <strong>${currency.format(wine.price)}</strong>
+          <span>${currency.format(wine.oldPrice)}</span>
+        </div>
+        <button class="primary-action detail-buy" type="button" data-add="${wine.id}">Adicionar ao carrinho</button>
       </div>
-      <button class="primary-action detail-buy" type="button" data-add="${wine.id}">Adicionar ao carrinho</button>
-    </div>
-  </section>
+    </section>
 
-  <section class="wine-profile">
-    <article>
-      <p class="eyebrow">Historia</p>
-      <h2>A origem desta garrafa</h2>
-      <p>${wine.history}</p>
-    </article>
-    <article>
-      <p class="eyebrow">Degustacao</p>
-      <h2>Perfil do vinho</h2>
-      <p>${wine.tasting}</p>
-    </article>
-  </section>
+    <section class="wine-profile">
+      <article>
+        <p class="eyebrow">Historia</p>
+        <h2>A origem desta garrafa</h2>
+        <p>${wine.history}</p>
+      </article>
+      <article>
+        <p class="eyebrow">Degustacao</p>
+        <h2>Perfil do vinho</h2>
+        <p>${wine.tasting}</p>
+      </article>
+    </section>
 
-  <section class="ratings">
-    <div>
-      <p class="eyebrow">Pontuacoes</p>
-      <h2>Referencias de qualidade</h2>
-    </div>
-    <div class="rating-grid">
-      ${wine.scores
-        .map(
-          (score) => `
-            <div class="rating-card">
-              <strong>${score.score}</strong>
-              <span>${score.source}</span>
-            </div>
-          `
-        )
-        .join("")}
-    </div>
-  </section>
+    <section class="ratings">
+      <div>
+        <p class="eyebrow">Pontuacoes</p>
+        <h2>Referencias de qualidade</h2>
+      </div>
+      <div class="rating-grid">
+        ${wine.scores
+          .map(
+            (score) => `
+              <div class="rating-card">
+                <strong>${score.score}</strong>
+                <span>${score.source}</span>
+              </div>
+            `
+          )
+          .join("")}
+      </div>
+    </section>
 
-  <section class="pairings">
-    <div>
-      <p class="eyebrow">Harmonizacao</p>
-      <h2>Combina bem com</h2>
-    </div>
-    <div class="pairing-list">
-      ${wine.pairings.map((pairing) => `<span>${pairing}</span>`).join("")}
-    </div>
-  </section>
-`;
+    <section class="pairings">
+      <div>
+        <p class="eyebrow">Harmonizacao</p>
+        <h2>Combina bem com</h2>
+      </div>
+      <div class="pairing-list">
+        ${wine.pairings.map((pairing) => `<span>${pairing}</span>`).join("")}
+      </div>
+    </section>
+  `;
 
-root.querySelector("[data-add]").addEventListener("click", () => addToCart(wine.id));
+  root.querySelector("[data-add]").addEventListener("click", () => addToCart(wine.id));
+}
+
+async function initDetail() {
+  root.innerHTML = `<p style="text-align:center;padding:4rem;color:var(--muted)">Carregando...</p>`;
+
+  try {
+    let wine;
+    if (wineId) {
+      const res = await fetch(`/api/wines/${encodeURIComponent(wineId)}`);
+      if (res.ok) {
+        wine = await res.json();
+      }
+    }
+    if (!wine) {
+      const res = await fetch('/api/wines');
+      const all = await res.json();
+      wine = all[0];
+    }
+    if (!wine) throw new Error('nenhum vinho encontrado');
+
+    wines = wines.length ? wines : [wine];
+    renderDetail(wine);
+  } catch (e) {
+    root.innerHTML = `<p style="text-align:center;padding:4rem;color:var(--muted)">Vinho não encontrado.</p>`;
+  }
+}
+
+initDetail();
