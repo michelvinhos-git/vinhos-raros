@@ -554,6 +554,7 @@ async function deleteSlide(id) {
 
 /* ── Identidade do site ── */
 const siteNameInput    = document.getElementById('site-name-input');
+const siteWhatsappInput = document.getElementById('site-whatsapp-input');
 const logoImageFile    = document.getElementById('logo-image-file');
 const logoHidden       = document.getElementById('logo-hidden');
 const logoPreview      = document.getElementById('logo-preview');
@@ -581,7 +582,10 @@ async function loadIdentity() {
     const res = await fetch('/api/settings');
     const data = await res.json();
     siteNameInput.value = data.site_name || 'Vinhos Raros';
+    siteWhatsappInput.value = data.whatsapp || '';
     setLogoPreview(data.logo || '');
+    const tickerInput = document.getElementById('site-ticker-input');
+    if (tickerInput) tickerInput.value = data.ticker_text || '';
   } catch {}
 }
 
@@ -620,7 +624,7 @@ saveIdentityBtn.addEventListener('click', async () => {
     const res = await fetch('/api/settings', {
       method: 'PUT',
       headers: authHeader(),
-      body: JSON.stringify({ site_name, logo: logoHidden.value || '/logo.png' })
+      body: JSON.stringify({ site_name, logo: logoHidden.value || '/logo.png', whatsapp: siteWhatsappInput.value, ticker_text: (document.getElementById('site-ticker-input')?.value ?? '') })
     });
     if (res.status === 401) { token = ''; sessionStorage.removeItem('vr_admin_token'); showLogin(); return; }
     if (res.ok) {

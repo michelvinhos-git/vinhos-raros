@@ -68,7 +68,7 @@ db.exec(`
     value TEXT NOT NULL
   )
 `);
-const defaultSettings = { theme: 'dark', site_name: 'Vinhos Raros', logo: '/logo.png' };
+const defaultSettings = { theme: 'dark', site_name: 'Vinhos Raros', logo: '/logo.png', whatsapp: '', ticker_text: '🍷 Vinhos raros de produção limitada · Safras históricas selecionadas · Procedência 100% verificada · Separação climatizada em 12h · Pontuações 96+ · Entrega para todo o Brasil' };
 const seedSetting = db.prepare("INSERT INTO settings (key, value) VALUES (?, ?)");
 for (const [key, value] of Object.entries(defaultSettings)) {
   const row = db.prepare("SELECT value FROM settings WHERE key = ?").get(key);
@@ -436,7 +436,7 @@ app.get('/api/settings', (req, res) => {
 });
 
 app.put('/api/settings', requireAuth, (req, res) => {
-  const { theme, site_name, logo } = req.body;
+  const { theme, site_name, logo, whatsapp, ticker_text } = req.body;
   const set = db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)");
 
   if (theme !== undefined) {
@@ -450,6 +450,12 @@ app.put('/api/settings', requireAuth, (req, res) => {
   }
   if (logo !== undefined) {
     set.run('logo', String(logo).trim() || '/logo.png');
+  }
+  if (whatsapp !== undefined) {
+    set.run('whatsapp', String(whatsapp).replace(/\D/g, ''));
+  }
+  if (ticker_text !== undefined) {
+    set.run('ticker_text', String(ticker_text));
   }
 
   res.json({ ok: true, ...readSettings() });

@@ -380,6 +380,16 @@
               <input type="hidden" id="logo-hidden" />
             </div>
           </div>
+          <div style="max-width:720px;margin-top:1.25rem">
+            <label for="site-whatsapp-input">WhatsApp para pedidos</label>
+            <input type="text" id="site-whatsapp-input" placeholder="Ex: 55 11 99999-9999" />
+            <p class="identity-hint">Inclua DDI + DDD (ex: 55 = Brasil). Os pedidos do carrinho são enviados para este número via WhatsApp.</p>
+          </div>
+          <div style="max-width:720px;margin-top:1.25rem">
+            <label for="site-ticker-input">Faixa rolante (ticker)</label>
+            <textarea id="site-ticker-input" rows="2" placeholder="Ex: 🍷 Vinhos raros de produção limitada · Safras históricas selecionadas · Procedência verificada" style="width:100%;resize:vertical;background:var(--panel-soft);border:1px solid var(--line);border-radius:8px;color:var(--ink);font-family:inherit;font-size:.92rem;padding:10px 12px;outline:none"></textarea>
+            <p class="identity-hint">Texto que corre da direita para a esquerda logo abaixo do carrossel. Deixe em branco para ocultar a faixa.</p>
+          </div>
           <div class="identity-actions">
             <button class="btn-primary" id="save-identity-btn">Salvar identidade</button>
             <span id="identity-status"></span>

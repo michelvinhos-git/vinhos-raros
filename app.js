@@ -14,12 +14,36 @@ function applyBranding(s) {
   }
 }
 
+let siteSettings = {};
 fetch('/api/settings').then(r => r.json()).then(s => {
+  siteSettings = s || {};
   document.documentElement.setAttribute('data-theme', s.theme || 'dark');
   applyBranding(s);
+  applyTicker(s.ticker_text || '');
 }).catch(() => {
   document.documentElement.setAttribute('data-theme', 'dark');
 });
+
+function applyTicker(text) {
+  const inner = document.getElementById('ticker-inner');
+  const track = document.getElementById('ticker-track');
+  const band  = document.getElementById('beneficios');
+  if (!inner || !track) return;
+  if (!text.trim()) {
+    if (band) band.style.display = 'none';
+    return;
+  }
+  const segment = text + '   ·   ';
+  inner.textContent = segment.repeat(5);
+  const clone = inner.cloneNode(true);
+  track.appendChild(clone);
+}
+
+function esc(str) {
+  return String(str == null ? '' : str).replace(/[&<>"']/g, (c) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+}
 
 const currency = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -37,7 +61,17 @@ function saveCart() {
 }
 
 function addToCart(id) {
+  const wine = wines.find((w) => w.id === id);
+  const stock = wine ? Number(wine.stock) || 0 : 0;
   const item = cart.find((cartItem) => cartItem.id === id);
+  const currentQty = item ? item.qty : 0;
+
+  // respeita o estoque quando definido (> 0)
+  if (stock > 0 && currentQty >= stock) {
+    document.body.classList.add("cart-open");
+    return;
+  }
+
   if (item) {
     item.qty += 1;
   } else {
@@ -45,6 +79,21 @@ function addToCart(id) {
   }
   saveCart();
   document.body.classList.add("cart-open");
+}
+
+function removeFromCart(id) {
+  const index = cart.findIndex((item) => item.id === id);
+  if (index >= 0) cart.splice(index, 1);
+  saveCart();
+}
+
+function decrementCart(id) {
+  const index = cart.findIndex((item) => item.id === id);
+  if (index >= 0) {
+    cart[index].qty -= 1;
+    if (cart[index].qty <= 0) cart.splice(index, 1);
+  }
+  saveCart();
 }
 
 function renderBottle(wine) {
@@ -67,6 +116,18 @@ function renderBottle(wine) {
 }
 
 function renderCart() {
+  // remove itens órfãos (vinho excluído/alterado) — só quando o catálogo já carregou
+  if (wines.length) {
+    let pruned = false;
+    for (let i = cart.length - 1; i >= 0; i--) {
+      if (!wines.find((w) => w.id === cart[i].id)) {
+        cart.splice(i, 1);
+        pruned = true;
+      }
+    }
+    if (pruned) localStorage.setItem("vinhosRarosCart", JSON.stringify(cart));
+  }
+
   const count = cart.reduce((sum, item) => sum + item.qty, 0);
   document.querySelectorAll("[data-cart-count]").forEach((node) => {
     node.textContent = count;
@@ -77,7 +138,7 @@ function renderCart() {
   if (!itemsRoot || !totalRoot) return;
 
   if (!cart.length) {
-    itemsRoot.innerHTML = `<p class="empty-cart">Seu carrinho esta vazio.</p>`;
+    itemsRoot.innerHTML = `<p class="empty-cart">Seu carrinho está vazio.</p>`;
     totalRoot.textContent = currency.format(0);
     return;
   }
@@ -88,35 +149,67 @@ function renderCart() {
       const wine = wines.find((entry) => entry.id === item.id);
       if (!wine) return "";
       total += wine.price * item.qty;
+      const stock = Number(wine.stock) || 0;
+      const atMax = stock > 0 && item.qty >= stock;
       return `
         <div class="cart-item">
-          <div>
-            <strong>${wine.name}</strong>
-            <span>${item.qty} x ${currency.format(wine.price)}</span>
+          <div class="cart-item-info">
+            <strong>${esc(wine.name)}</strong>
+            <span>${currency.format(wine.price)} · ${currency.format(wine.price * item.qty)}</span>
           </div>
-          <button class="icon-button" type="button" data-remove="${wine.id}" aria-label="Remover ${wine.name}">-</button>
+          <div class="cart-qty">
+            <button class="qty-btn" type="button" data-dec="${esc(wine.id)}" aria-label="Diminuir quantidade de ${esc(wine.name)}">−</button>
+            <span class="qty-num">${item.qty}</span>
+            <button class="qty-btn" type="button" data-inc="${esc(wine.id)}" ${atMax ? "disabled" : ""} aria-label="Aumentar quantidade de ${esc(wine.name)}">+</button>
+            <button class="cart-remove" type="button" data-remove="${esc(wine.id)}" aria-label="Remover ${esc(wine.name)} do carrinho">✕</button>
+          </div>
         </div>
       `;
     })
     .join("");
 
   totalRoot.textContent = currency.format(total);
-  itemsRoot.querySelectorAll("[data-remove]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const index = cart.findIndex((item) => item.id === button.dataset.remove);
-      if (index >= 0) {
-        cart[index].qty -= 1;
-        if (cart[index].qty <= 0) cart.splice(index, 1);
-      }
-      saveCart();
-    });
-  });
+  itemsRoot.querySelectorAll("[data-inc]").forEach((b) =>
+    b.addEventListener("click", () => addToCart(b.dataset.inc)));
+  itemsRoot.querySelectorAll("[data-dec]").forEach((b) =>
+    b.addEventListener("click", () => decrementCart(b.dataset.dec)));
+  itemsRoot.querySelectorAll("[data-remove]").forEach((b) =>
+    b.addEventListener("click", () => removeFromCart(b.dataset.remove)));
+}
+
+function checkout() {
+  if (!cart.length) return;
+
+  const number = (siteSettings.whatsapp || "").replace(/\D/g, "");
+  if (!number) {
+    alert("O WhatsApp para pedidos ainda não foi configurado. Configure no painel administrativo.");
+    return;
+  }
+
+  let total = 0;
+  const lines = cart
+    .map((item) => {
+      const wine = wines.find((w) => w.id === item.id);
+      if (!wine) return null;
+      const sub = wine.price * item.qty;
+      total += sub;
+      return `• ${item.qty}x ${wine.name} — ${currency.format(sub)}`;
+    })
+    .filter(Boolean);
+
+  if (!lines.length) return;
+
+  const siteName = siteSettings.site_name || "Vinhos Raros";
+  const msg = `Olá! Gostaria de finalizar meu pedido na ${siteName}:\n\n${lines.join("\n")}\n\n*Total: ${currency.format(total)}*`;
+  window.open(`https://wa.me/${number}?text=${encodeURIComponent(msg)}`, "_blank");
 }
 
 function setupCart() {
   document.querySelectorAll("[data-cart-toggle]").forEach((button) => {
     button.addEventListener("click", () => document.body.classList.toggle("cart-open"));
   });
+  const checkoutBtn = document.querySelector(".checkout");
+  if (checkoutBtn) checkoutBtn.addEventListener("click", checkout);
   renderCart();
 }
 
