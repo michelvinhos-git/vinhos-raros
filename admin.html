@@ -390,6 +390,14 @@
             <textarea id="site-ticker-input" rows="2" placeholder="Ex: 🍷 Vinhos raros de produção limitada · Safras históricas selecionadas · Procedência verificada" style="width:100%;resize:vertical;background:var(--panel-soft);border:1px solid var(--line);border-radius:8px;color:var(--ink);font-family:inherit;font-size:.92rem;padding:10px 12px;outline:none"></textarea>
             <p class="identity-hint">Texto que corre da direita para a esquerda logo abaixo do carrossel. Deixe em branco para ocultar a faixa.</p>
           </div>
+          <div style="max-width:360px;margin-top:1rem">
+            <label for="site-ticker-speed">Velocidade da faixa rolante</label>
+            <div style="display:flex;align-items:center;gap:14px;margin-top:6px">
+              <input type="range" id="site-ticker-speed" min="5" max="120" step="5" value="30" style="flex:1;accent-color:var(--wine)" />
+              <span id="ticker-speed-label" style="min-width:70px;font-size:.88rem;color:var(--muted)">Normal</span>
+            </div>
+            <p class="identity-hint" style="margin-top:4px">Arraste para a esquerda para acelerar, para a direita para desacelerar.</p>
+          </div>
           <div class="identity-actions">
             <button class="btn-primary" id="save-identity-btn">Salvar identidade</button>
             <span id="identity-status"></span>

@@ -68,7 +68,7 @@ db.exec(`
     value TEXT NOT NULL
   )
 `);
-const defaultSettings = { theme: 'dark', site_name: 'Vinhos Raros', logo: '/logo.png', whatsapp: '', ticker_text: '🍷 Vinhos raros de produção limitada · Safras históricas selecionadas · Procedência 100% verificada · Separação climatizada em 12h · Pontuações 96+ · Entrega para todo o Brasil' };
+const defaultSettings = { theme: 'dark', site_name: 'Vinhos Raros', logo: '/logo.png', whatsapp: '', ticker_text: '🍷 Vinhos raros de produção limitada · Safras históricas selecionadas · Procedência 100% verificada · Separação climatizada em 12h · Pontuações 96+ · Entrega para todo o Brasil', ticker_speed: '30' };
 const seedSetting = db.prepare("INSERT INTO settings (key, value) VALUES (?, ?)");
 for (const [key, value] of Object.entries(defaultSettings)) {
   const row = db.prepare("SELECT value FROM settings WHERE key = ?").get(key);
@@ -436,7 +436,7 @@ app.get('/api/settings', (req, res) => {
 });
 
 app.put('/api/settings', requireAuth, (req, res) => {
-  const { theme, site_name, logo, whatsapp, ticker_text } = req.body;
+  const { theme, site_name, logo, whatsapp, ticker_text, ticker_speed } = req.body;
   const set = db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)");
 
   if (theme !== undefined) {
@@ -456,6 +456,10 @@ app.put('/api/settings', requireAuth, (req, res) => {
   }
   if (ticker_text !== undefined) {
     set.run('ticker_text', String(ticker_text));
+  }
+  if (ticker_speed !== undefined) {
+    const spd = parseInt(ticker_speed, 10);
+    if (!isNaN(spd) && spd >= 5 && spd <= 120) set.run('ticker_speed', String(spd));
   }
 
   res.json({ ok: true, ...readSettings() });

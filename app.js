@@ -19,12 +19,12 @@ fetch('/api/settings').then(r => r.json()).then(s => {
   siteSettings = s || {};
   document.documentElement.setAttribute('data-theme', s.theme || 'dark');
   applyBranding(s);
-  applyTicker(s.ticker_text || '');
+  applyTicker(s.ticker_text || '', parseInt(s.ticker_speed, 10) || 30);
 }).catch(() => {
   document.documentElement.setAttribute('data-theme', 'dark');
 });
 
-function applyTicker(text) {
+function applyTicker(text, speed) {
   const inner = document.getElementById('ticker-inner');
   const track = document.getElementById('ticker-track');
   const band  = document.getElementById('beneficios');
@@ -33,6 +33,8 @@ function applyTicker(text) {
     if (band) band.style.display = 'none';
     return;
   }
+  const duration = (speed || 30) + 's';
+  track.style.animationDuration = duration;
   const segment = text + '   ·   ';
   inner.textContent = segment.repeat(5);
   const clone = inner.cloneNode(true);

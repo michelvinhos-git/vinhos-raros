@@ -586,6 +586,12 @@ async function loadIdentity() {
     setLogoPreview(data.logo || '');
     const tickerInput = document.getElementById('site-ticker-input');
     if (tickerInput) tickerInput.value = data.ticker_text || '';
+    const tickerSpeed = document.getElementById('site-ticker-speed');
+    if (tickerSpeed) {
+      const spd = parseInt(data.ticker_speed, 10) || 30;
+      tickerSpeed.value = spd;
+      updateTickerSpeedLabel(spd);
+    }
   } catch {}
 }
 
@@ -624,7 +630,7 @@ saveIdentityBtn.addEventListener('click', async () => {
     const res = await fetch('/api/settings', {
       method: 'PUT',
       headers: authHeader(),
-      body: JSON.stringify({ site_name, logo: logoHidden.value || '/logo.png', whatsapp: siteWhatsappInput.value, ticker_text: (document.getElementById('site-ticker-input')?.value ?? '') })
+      body: JSON.stringify({ site_name, logo: logoHidden.value || '/logo.png', whatsapp: siteWhatsappInput.value, ticker_text: (document.getElementById('site-ticker-input')?.value ?? ''), ticker_speed: document.getElementById('site-ticker-speed')?.value ?? '30' })
     });
     if (res.status === 401) { token = ''; sessionStorage.removeItem('vr_admin_token'); showLogin(); return; }
     if (res.ok) {
@@ -643,6 +649,25 @@ saveIdentityBtn.addEventListener('click', async () => {
     saveIdentityBtn.disabled = false;
   }
 });
+
+/* ── Ticker speed label ── */
+function updateTickerSpeedLabel(val) {
+  const label = document.getElementById('ticker-speed-label');
+  if (!label) return;
+  const v = parseInt(val, 10);
+  if (v <= 12)       label.textContent = 'Muito rápida';
+  else if (v <= 20)  label.textContent = 'Rápida';
+  else if (v <= 40)  label.textContent = 'Normal';
+  else if (v <= 70)  label.textContent = 'Lenta';
+  else               label.textContent = 'Muito lenta';
+}
+
+(function () {
+  const slider = document.getElementById('site-ticker-speed');
+  if (slider) {
+    slider.addEventListener('input', () => updateTickerSpeedLabel(slider.value));
+  }
+})();
 
 /* ── Theme ── */
 async function loadTheme() {
