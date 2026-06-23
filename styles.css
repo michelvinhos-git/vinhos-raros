@@ -257,14 +257,14 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, rgba(0,0,0,0.36), rgba(5,4,3,0.82)),
-    linear-gradient(0deg, rgba(9,8,6,0.6), transparent 50%);
+    linear-gradient(to right, transparent 38%, rgba(5,4,3,0.82) 78%),
+    linear-gradient(to top, rgba(9,8,6,0.5) 0%, transparent 35%);
 }
 
 [data-theme="light"] .carousel-overlay {
   background:
-    linear-gradient(90deg, rgba(255,255,255,0.42), rgba(255,255,255,0.78)),
-    linear-gradient(0deg, rgba(255,255,255,0.6), transparent 50%);
+    linear-gradient(to right, transparent 38%, rgba(255,255,255,0.82) 78%),
+    linear-gradient(to top, rgba(245,240,232,0.4) 0%, transparent 35%);
 }
 
 .carousel-slide--promo {
