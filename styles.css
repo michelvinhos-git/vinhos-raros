@@ -553,22 +553,8 @@ button {
 }
 
 .cart-icon {
-  border: 2px solid currentColor;
-  border-top: 0;
-  height: 14px;
-  position: relative;
-  width: 18px;
-}
-
-.cart-icon::before {
-  border: 2px solid currentColor;
-  border-bottom: 0;
-  content: "";
-  height: 8px;
-  left: 3px;
-  position: absolute;
-  top: -8px;
-  width: 8px;
+  display: block;
+  flex-shrink: 0;
 }
 
 .hero {
