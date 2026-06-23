@@ -62,6 +62,15 @@ try {
   if (!e.message.includes('duplicate column')) throw e;
 }
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  )
+`);
+const themeRow = db.prepare("SELECT value FROM settings WHERE key = 'theme'").get();
+if (!themeRow) db.prepare("INSERT INTO settings (key, value) VALUES ('theme', 'dark')").run();
+
 const seedWines = [
   {
     id: "barolo-riserva-2016",
@@ -345,6 +354,19 @@ app.delete('/api/wines/:id', requireAuth, (req, res) => {
   }
   db.prepare('DELETE FROM wines WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
+});
+
+/* ── Settings ── */
+app.get('/api/settings', (req, res) => {
+  const theme = db.prepare("SELECT value FROM settings WHERE key = 'theme'").get();
+  res.json({ theme: theme ? theme.value : 'dark' });
+});
+
+app.put('/api/settings', requireAuth, (req, res) => {
+  const { theme } = req.body;
+  if (!['dark', 'light'].includes(theme)) return res.status(400).json({ error: 'Tema inválido' });
+  db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('theme', ?)").run(theme);
+  res.json({ ok: true, theme });
 });
 
 app.get('/admin', (req, res) => res.redirect('/admin.html'));

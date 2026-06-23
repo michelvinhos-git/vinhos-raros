@@ -12,6 +12,61 @@
   --radius: 22px;
 }
 
+[data-theme="light"] {
+  --ink: #1a0d06;
+  --muted: #6b5840;
+  --paper: #f5f0e8;
+  --panel: #ece6d8;
+  --panel-soft: #e2d9c8;
+  --line: rgba(100, 65, 20, 0.18);
+  --forest: #f0ead8;
+}
+
+[data-theme="light"] body {
+  background:
+    radial-gradient(circle at top left, rgba(214, 176, 91, 0.18), transparent 34rem),
+    linear-gradient(180deg, #f0ead8 0%, var(--paper) 45%, #ede5d2 100%);
+  color: var(--ink);
+}
+
+[data-theme="light"] .topbar {
+  background: rgba(245, 240, 232, 0.88);
+  border-color: rgba(139, 90, 43, 0.18);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.10);
+}
+
+[data-theme="light"] .wine-card {
+  background: linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.01));
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.09);
+}
+
+[data-theme="light"] .wine-photo-wrap {
+  background: linear-gradient(180deg, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.08) 100%);
+}
+
+[data-theme="light"] .section-heading::after {
+  background: var(--line);
+}
+
+[data-theme="light"] .cart-drawer {
+  background: var(--panel);
+  border-color: var(--line);
+}
+
+[data-theme="light"] .cart-item {
+  border-color: var(--line);
+}
+
+[data-theme="light"] .detail-card {
+  background: var(--panel);
+  border-color: var(--line);
+}
+
+[data-theme="light"] .rating-card {
+  background: var(--panel-soft);
+  border-color: var(--line);
+}
+
 * {
   box-sizing: border-box;
 }

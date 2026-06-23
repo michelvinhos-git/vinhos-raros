@@ -380,7 +380,39 @@ confirmOk.addEventListener('click', async () => {
   }
 });
 
+/* ── Theme ── */
+async function loadTheme() {
+  try {
+    const res = await fetch('/api/settings');
+    const data = await res.json();
+    setThemeUI(data.theme || 'dark');
+  } catch {}
+}
+
+function setThemeUI(theme) {
+  document.getElementById('theme-dark').classList.toggle('selected', theme === 'dark');
+  document.getElementById('theme-light').classList.toggle('selected', theme === 'light');
+}
+
+document.querySelectorAll('.theme-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const theme = btn.dataset.theme;
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'PUT',
+        headers: authHeader(),
+        body: JSON.stringify({ theme })
+      });
+      if (res.status === 401) { token = ''; sessionStorage.removeItem('vr_admin_token'); showLogin(); return; }
+      if (res.ok) setThemeUI(theme);
+    } catch {
+      alert('Erro ao salvar tema. Tente novamente.');
+    }
+  });
+});
+
 /* ── Init ── */
+loadTheme();
 if (token) {
   fetch('/api/auth/verify', { headers: authHeader() }).then(r => {
     if (r.ok) { showAdmin(); loadWines(); }

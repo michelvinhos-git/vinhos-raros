@@ -1,3 +1,8 @@
+/* ── Tema ── */
+fetch('/api/settings').then(r => r.json()).then(s => {
+  if (s.theme && s.theme !== 'dark') document.documentElement.setAttribute('data-theme', s.theme);
+}).catch(() => {});
+
 const params = new URLSearchParams(window.location.search);
 const wineId = params.get("id");
 const root = document.querySelector("[data-detail-root]");

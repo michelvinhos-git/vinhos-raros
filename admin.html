@@ -184,6 +184,38 @@
       /* ── Empty/loading ── */
       .table-empty { padding: 3rem; text-align: center; color: var(--muted); }
 
+      /* ── Aparência ── */
+      .admin-section {
+        margin-top: 3rem; padding-top: 2rem;
+        border-top: 1px solid var(--line);
+      }
+      .admin-section h2 { margin: 0 0 1.5rem; font-size: 1.5rem; color: var(--ink); }
+      .theme-options {
+        display: flex; gap: 1rem; flex-wrap: wrap;
+      }
+      .theme-btn {
+        display: flex; flex-direction: column; align-items: center; gap: .75rem;
+        padding: 1.25rem 2rem; border-radius: 16px; cursor: pointer;
+        border: 2px solid var(--line); background: var(--panel);
+        color: var(--muted); font: inherit; font-size: .9rem; font-weight: 600;
+        transition: border-color .15s, color .15s;
+        min-width: 140px;
+      }
+      .theme-btn .theme-preview {
+        width: 72px; height: 48px; border-radius: 10px; border: 1px solid rgba(255,255,255,.1);
+      }
+      .theme-btn.dark-preview .theme-preview { background: linear-gradient(135deg, #090806 60%, #15120d); }
+      .theme-btn.light-preview .theme-preview { background: linear-gradient(135deg, #f5f0e8 60%, #ece6d8); }
+      .theme-btn:hover { border-color: var(--gold); color: var(--gold); }
+      .theme-btn.selected {
+        border-color: var(--gold); color: var(--gold);
+        background: var(--panel-soft);
+      }
+      .theme-btn.selected::after {
+        content: '✓ Ativo';
+        font-size: .75rem; color: var(--gold);
+      }
+
       /* ── Confirm dialog ── */
       #confirm-overlay {
         display: none; position: fixed; inset: 0; z-index: 60;
@@ -241,6 +273,20 @@
         </div>
         <div id="wines-table-container">
           <div class="table-empty">Carregando vinhos...</div>
+        </div>
+
+        <div class="admin-section">
+          <h2>Aparência do Site</h2>
+          <div class="theme-options">
+            <button class="theme-btn dark-preview" id="theme-dark" data-theme="dark">
+              <div class="theme-preview"></div>
+              Escuro
+            </button>
+            <button class="theme-btn light-preview" id="theme-light" data-theme="light">
+              <div class="theme-preview"></div>
+              Claro
+            </button>
+          </div>
         </div>
       </main>
     </div>
