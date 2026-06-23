@@ -177,6 +177,57 @@
   filter: invert(1) sepia(1) saturate(0.4) brightness(1.8);
 }
 
+.topbar-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  max-width: 480px;
+  margin: 0 32px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.18);
+  padding-bottom: 4px;
+}
+
+.topbar-search-icon {
+  color: #8b1537;
+  flex-shrink: 0;
+}
+
+.topbar-search-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 0.92rem;
+  color: #3a2810;
+  width: 100%;
+  padding: 2px 0;
+}
+
+.topbar-search-input::placeholder {
+  color: #a89070;
+}
+
+.topbar-search-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+
+[data-theme="dark"] .topbar-search {
+  border-bottom-color: rgba(214, 176, 91, 0.28);
+}
+
+[data-theme="dark"] .topbar-search-icon {
+  color: var(--gold);
+}
+
+[data-theme="dark"] .topbar-search-input {
+  color: var(--ink);
+}
+
+[data-theme="dark"] .topbar-search-input::placeholder {
+  color: var(--muted);
+}
+
 .topbar-nav {
   display: flex;
   align-items: center;
