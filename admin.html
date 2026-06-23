@@ -379,6 +379,19 @@
               </div>
               <input type="hidden" id="logo-hidden" />
             </div>
+            <div>
+              <label>Favicon <small style="color:var(--muted);font-weight:400">(ícone da aba do navegador)</small></label>
+              <div class="slide-upload-area" id="favicon-upload-area" style="min-height:110px">
+                <input type="file" id="favicon-image-file" accept="image/png,image/x-icon,image/svg+xml,image/jpeg,image/webp" />
+                <img class="logo-upload-preview" id="favicon-preview" src="" alt="" style="display:none;max-height:64px;max-width:64px;object-fit:contain;margin:auto" />
+                <div class="slide-upload-placeholder" id="favicon-placeholder">
+                  🖼️ Clique para enviar o favicon<br/>
+                  <small>PNG, ICO ou SVG · recomendado 32×32 ou 64×64</small>
+                </div>
+                <span id="favicon-upload-status" style="position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:.8rem;color:var(--gold)"></span>
+              </div>
+              <input type="hidden" id="favicon-hidden" />
+            </div>
           </div>
           <div style="max-width:720px;margin-top:1.25rem">
             <label for="site-whatsapp-input">WhatsApp para pedidos</label>

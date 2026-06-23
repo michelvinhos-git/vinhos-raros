@@ -555,15 +555,20 @@ async function deleteSlide(id) {
 }
 
 /* ── Identidade do site ── */
-const siteNameInput    = document.getElementById('site-name-input');
+const siteNameInput     = document.getElementById('site-name-input');
 const siteWhatsappInput = document.getElementById('site-whatsapp-input');
-const logoImageFile    = document.getElementById('logo-image-file');
-const logoHidden       = document.getElementById('logo-hidden');
-const logoPreview      = document.getElementById('logo-preview');
-const logoPlaceholder  = document.getElementById('logo-placeholder');
-const logoUploadStatus = document.getElementById('logo-upload-status');
-const saveIdentityBtn  = document.getElementById('save-identity-btn');
-const identityStatus   = document.getElementById('identity-status');
+const logoImageFile     = document.getElementById('logo-image-file');
+const logoHidden        = document.getElementById('logo-hidden');
+const logoPreview       = document.getElementById('logo-preview');
+const logoPlaceholder   = document.getElementById('logo-placeholder');
+const logoUploadStatus  = document.getElementById('logo-upload-status');
+const faviconImageFile  = document.getElementById('favicon-image-file');
+const faviconHidden     = document.getElementById('favicon-hidden');
+const faviconPreview    = document.getElementById('favicon-preview');
+const faviconPlaceholder= document.getElementById('favicon-placeholder');
+const faviconUploadStatus = document.getElementById('favicon-upload-status');
+const saveIdentityBtn   = document.getElementById('save-identity-btn');
+const identityStatus    = document.getElementById('identity-status');
 
 function setLogoPreview(url) {
   if (url) {
@@ -579,6 +584,20 @@ function setLogoPreview(url) {
   }
 }
 
+function setFaviconPreview(url) {
+  if (url) {
+    faviconHidden.value = url;
+    faviconPreview.src = url;
+    faviconPreview.style.display = 'block';
+    faviconPlaceholder.style.display = 'none';
+  } else {
+    faviconHidden.value = '';
+    faviconPreview.src = '';
+    faviconPreview.style.display = 'none';
+    faviconPlaceholder.style.display = 'flex';
+  }
+}
+
 async function loadIdentity() {
   try {
     const res = await fetch('/api/settings');
@@ -586,6 +605,7 @@ async function loadIdentity() {
     siteNameInput.value = data.site_name || 'Vinhos Raros';
     siteWhatsappInput.value = data.whatsapp || '';
     setLogoPreview(data.logo || '');
+    setFaviconPreview(data.favicon || '');
     const tickerInput = document.getElementById('site-ticker-input');
     if (tickerInput) tickerInput.value = data.ticker_text || '';
     const tickerSpeed = document.getElementById('site-ticker-speed');
@@ -618,6 +638,27 @@ logoImageFile.addEventListener('change', async () => {
   }
 });
 
+faviconImageFile.addEventListener('change', async () => {
+  const file = faviconImageFile.files[0];
+  if (!file) return;
+  faviconUploadStatus.textContent = 'Enviando...';
+  try {
+    const fd = new FormData();
+    fd.append('image', file);
+    const r = await fetch(`/api/upload?token=${encodeURIComponent(token)}`, { method: 'POST', body: fd });
+    if (r.status === 401) { token = ''; sessionStorage.removeItem('vr_admin_token'); showLogin(); return; }
+    const data = await r.json();
+    if (data.url) {
+      setFaviconPreview(data.url);
+      faviconUploadStatus.textContent = '✓ Favicon enviado';
+    } else {
+      faviconUploadStatus.textContent = data.error || 'Erro no upload';
+    }
+  } catch {
+    faviconUploadStatus.textContent = 'Erro de conexão no upload';
+  }
+});
+
 saveIdentityBtn.addEventListener('click', async () => {
   const site_name = siteNameInput.value.trim();
   if (!site_name) {
@@ -632,7 +673,7 @@ saveIdentityBtn.addEventListener('click', async () => {
     const res = await fetch('/api/settings', {
       method: 'PUT',
       headers: authHeader(),
-      body: JSON.stringify({ site_name, logo: logoHidden.value || '/logo.png', whatsapp: siteWhatsappInput.value, ticker_text: (document.getElementById('site-ticker-input')?.value ?? ''), ticker_speed: document.getElementById('site-ticker-speed')?.value ?? '30' })
+      body: JSON.stringify({ site_name, logo: logoHidden.value || '/logo.png', favicon: faviconHidden.value || '', whatsapp: siteWhatsappInput.value, ticker_text: (document.getElementById('site-ticker-input')?.value ?? ''), ticker_speed: document.getElementById('site-ticker-speed')?.value ?? '30' })
     });
     if (res.status === 401) { token = ''; sessionStorage.removeItem('vr_admin_token'); showLogin(); return; }
     if (res.ok) {
