@@ -260,6 +260,7 @@ function openEditModal(id) {
   document.getElementById('f-name').value    = wine.name    || '';
   document.getElementById('f-year').value    = wine.year    || '';
   document.getElementById('f-region').value  = wine.region  || '';
+  document.getElementById('f-country').value = wine.country || '';
   document.getElementById('f-type').value    = wine.type    || 'Tinto';
   document.getElementById('f-grape').value   = wine.grape   || '';
   document.getElementById('f-price').value   = wine.price   || 0;
@@ -312,6 +313,7 @@ formSave.addEventListener('click', async () => {
     name,
     year:     document.getElementById('f-year').value.trim(),
     region:   document.getElementById('f-region').value.trim(),
+    country:  document.getElementById('f-country').value.trim(),
     type:     document.getElementById('f-type').value,
     grape:    document.getElementById('f-grape').value.trim(),
     price,

@@ -61,6 +61,11 @@ try {
 } catch (e) {
   if (!e.message.includes('duplicate column')) throw e;
 }
+try {
+  db.exec(`ALTER TABLE wines ADD COLUMN country TEXT DEFAULT ''`);
+} catch (e) {
+  if (!e.message.includes('duplicate column')) throw e;
+}
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS settings (
@@ -335,10 +340,10 @@ app.post('/api/wines', requireAuth, (req, res) => {
   if (!w.id || !w.name) return res.status(400).json({ error: 'id e name são obrigatórios' });
   try {
     db.prepare(`
-      INSERT INTO wines (id,name,year,region,type,grape,price,oldPrice,stock,color,accent,label,short,history,tasting,pairings,scores,image)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+      INSERT INTO wines (id,name,year,region,country,type,grape,price,oldPrice,stock,color,accent,label,short,history,tasting,pairings,scores,image)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     `).run(
-      w.id, w.name, w.year, w.region, w.type, w.grape,
+      w.id, w.name, w.year, w.region, w.country || '', w.type, w.grape,
       w.price, w.oldPrice, w.stock, w.color, w.accent,
       w.label, w.short, w.history, w.tasting,
       JSON.stringify(w.pairings || []), JSON.stringify(w.scores || []), w.image || ''
@@ -355,10 +360,10 @@ app.post('/api/wines', requireAuth, (req, res) => {
 app.put('/api/wines/:id', requireAuth, (req, res) => {
   const w = req.body;
   const result = db.prepare(`
-    UPDATE wines SET name=?,year=?,region=?,type=?,grape=?,price=?,oldPrice=?,stock=?,color=?,accent=?,label=?,short=?,history=?,tasting=?,pairings=?,scores=?,image=?
+    UPDATE wines SET name=?,year=?,region=?,country=?,type=?,grape=?,price=?,oldPrice=?,stock=?,color=?,accent=?,label=?,short=?,history=?,tasting=?,pairings=?,scores=?,image=?
     WHERE id=?
   `).run(
-    w.name, w.year, w.region, w.type, w.grape,
+    w.name, w.year, w.region, w.country || '', w.type, w.grape,
     w.price, w.oldPrice, w.stock, w.color, w.accent,
     w.label, w.short, w.history, w.tasting,
     JSON.stringify(w.pairings || []), JSON.stringify(w.scores || []),

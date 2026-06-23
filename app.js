@@ -229,6 +229,7 @@ function renderCatalog(filter, query) {
     filtered = filtered.filter((wine) =>
       wine.name.toLowerCase().includes(q) ||
       (wine.region && wine.region.toLowerCase().includes(q)) ||
+      (wine.country && wine.country.toLowerCase().includes(q)) ||
       (wine.type && wine.type.toLowerCase().includes(q)) ||
       (wine.short && wine.short.toLowerCase().includes(q))
     );
@@ -240,7 +241,7 @@ function renderCatalog(filter, query) {
           <a class="wine-card-link" href="vinho.html?id=${wine.id}" aria-label="Ver detalhes de ${wine.name}">
             ${renderBottle(wine)}
             <div class="wine-card-body">
-              <div class="wine-meta">${wine.region} | ${wine.year}</div>
+              <div class="wine-meta">${[wine.country, wine.region, wine.year].filter(Boolean).join(' · ')}</div>
               <h3>${wine.name}</h3>
               <p>${wine.short}</p>
               <div class="score-row">

@@ -22,7 +22,7 @@ function renderDetail(wine) {
     <section class="detail-hero">
       ${visual}
       <div class="detail-summary">
-        <p class="eyebrow">${wine.region} | ${wine.year}</p>
+        <p class="eyebrow">${[wine.country, wine.region, wine.year].filter(Boolean).join(' · ')}</p>
         <h1>${wine.name}</h1>
         <p>${wine.short}</p>
         <div class="detail-facts">
