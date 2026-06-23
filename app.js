@@ -437,6 +437,42 @@ function renderCatalog(filter, query) {
   });
 }
 
+const TYPE_LABELS = {
+  Espumante: 'Espumantes',
+  Branco: 'Brancos',
+  Tinto: 'Tintos',
+  Rose: 'Rosés',
+  Fortificado: 'Fortificados',
+};
+const TYPE_ORDER = ['Espumante', 'Branco', 'Tinto', 'Rose', 'Fortificado'];
+
+function buildTypeNav() {
+  const container = document.getElementById('type-filters');
+  if (!container) return;
+
+  const presentTypes = TYPE_ORDER.filter((t) => wines.some((w) => w.type === t));
+
+  container.innerHTML = presentTypes
+    .map((t) => `<button class="cat-link cat-type-btn" data-filter-type="${t}">${TYPE_LABELS[t]}</button>`)
+    .join('');
+
+  container.querySelectorAll('.cat-type-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const chosen = btn.dataset.filterType;
+      const isActive = btn.classList.contains('active');
+      container.querySelectorAll('.cat-type-btn').forEach((b) => b.classList.remove('active'));
+      if (!isActive) {
+        btn.classList.add('active');
+        activeFilter = chosen;
+      } else {
+        activeFilter = 'Todos';
+      }
+      document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      renderCatalog();
+    });
+  });
+}
+
 function buildCountryNav() {
   const container = document.getElementById("country-filters");
   const separator = document.querySelector(".cat-separator");
@@ -504,6 +540,7 @@ async function init() {
   setupCart();
   renderCatalog();
   setupFilters();
+  buildTypeNav();
   buildCountryNav();
 }
 
@@ -574,14 +611,6 @@ init();
     if (Math.abs(diff) > 40) { goTo(current + (diff > 0 ? 1 : -1)); resetTimer(); }
   });
 
-  /* filtro de categoria pelo segundo nav */
-  document.querySelectorAll('.cat-link[data-filter-cat]').forEach(link => {
-    link.addEventListener('click', () => {
-      document.querySelectorAll('.cat-link[data-filter-cat]').forEach(l => l.classList.remove('active'));
-      link.classList.add('active');
-      renderCatalog(link.dataset.filterCat);
-    });
-  });
 
   resetTimer();
 })();

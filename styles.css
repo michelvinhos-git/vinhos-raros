@@ -288,6 +288,7 @@
   border-bottom-color: var(--gold);
 }
 
+#type-filters,
 #country-filters {
   display: contents;
 }
