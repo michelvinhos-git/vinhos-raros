@@ -408,15 +408,15 @@ function renderCatalog(filter, query) {
     .map(
       (wine) => `
         <article class="wine-card">
-          <a class="wine-card-link" href="vinho.html?id=${wine.id}" aria-label="Ver detalhes de ${wine.name}">
+          <a class="wine-card-link" href="vinho.html?id=${encodeURIComponent(wine.id)}" aria-label="Ver detalhes de ${esc(wine.name)}">
             ${renderBottle(wine)}
             <div class="wine-card-body">
-              <div class="wine-meta">${[wine.country, wine.region, wine.year].filter(Boolean).join(' · ')}</div>
-              <h3>${wine.name}</h3>
-              <p>${wine.short}</p>
+              <div class="wine-meta">${esc([wine.country, wine.region, wine.year].filter(Boolean).join(' · '))}</div>
+              <h3>${esc(wine.name)}</h3>
+              <p>${esc(wine.short)}</p>
               <div class="score-row">
-                <span>${wine.scores[0] ? wine.scores[0].score : ''}</span>
-                <small>${wine.type}</small>
+                <span>${esc(wine.scores[0] ? wine.scores[0].score : '')}</span>
+                <small>${esc(wine.type)}</small>
               </div>
             </div>
           </a>
@@ -425,7 +425,7 @@ function renderCatalog(filter, query) {
               <strong>${currency.format(wine.price)}</strong>
               <span>${currency.format(wine.oldPrice)}</span>
             </div>
-            <button type="button" data-add="${wine.id}" aria-label="Adicionar ${wine.name} ao carrinho">Comprar</button>
+            <button type="button" data-add="${esc(wine.id)}" aria-label="Adicionar ${esc(wine.name)} ao carrinho">Comprar</button>
           </div>
         </article>
       `
@@ -490,7 +490,7 @@ function buildCountryNav() {
 
   if (separator) separator.style.display = "";
   container.innerHTML = countries
-    .map((c) => `<button class="cat-country" data-filter-country="${c}">${c}</button>`)
+    .map((c) => `<button class="cat-country" data-filter-country="${esc(c)}">${esc(c)}</button>`)
     .join("");
 
   container.querySelectorAll(".cat-country").forEach((btn) => {
@@ -572,14 +572,14 @@ init();
   track.innerHTML = slides.map(s => {
     const hasImg = s.image && s.image !== '';
     return `
-      <div class="carousel-slide" style="width:${100/total}%;background:${hasImg ? s.bg_color : s.bg_color}">
-        ${hasImg ? `<img src="${s.image}" alt="${s.title}" class="carousel-img" /><div class="carousel-overlay"></div>` : ''}
+      <div class="carousel-slide" style="width:${100/total}%;background:${esc(s.bg_color)}">
+        ${hasImg ? `<img src="${esc(s.image)}" alt="${esc(s.title)}" class="carousel-img" /><div class="carousel-overlay"></div>` : ''}
         <div class="carousel-content" style="${!hasImg ? 'max-width:100%;margin-left:0' : ''}">
           <p class="eyebrow">Garrafas de produção limitada</p>
-          <h1>${s.title}</h1>
-          <p>${s.subtitle}</p>
+          <h1>${esc(s.title)}</h1>
+          <p>${esc(s.subtitle)}</p>
           <div class="hero-actions">
-            <a class="primary-action" href="${s.cta_link}">${s.cta_text}</a>
+            <a class="primary-action" href="${esc(s.cta_link)}">${esc(s.cta_text)}</a>
           </div>
         </div>
       </div>`;

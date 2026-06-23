@@ -301,6 +301,14 @@
   margin: 0 6px;
 }
 
+.cat-type-btn {
+  border: none;
+  outline: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
 .cat-country {
   display: flex;
   align-items: center;
