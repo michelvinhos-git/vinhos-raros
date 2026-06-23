@@ -251,8 +251,9 @@ init();
   /* filtro de categoria pelo segundo nav */
   document.querySelectorAll('.cat-link[data-filter-cat]').forEach(link => {
     link.addEventListener('click', () => {
-      const btn = document.querySelector(`[data-filter="${link.dataset.filterCat}"]`);
-      if (btn) btn.click();
+      document.querySelectorAll('.cat-link[data-filter-cat]').forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+      renderCatalog(link.dataset.filterCat);
     });
   });
 

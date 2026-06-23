@@ -10,7 +10,8 @@
       "Bash(node *)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:5000/)",
       "Bash(curl -s http://localhost:5000/api/settings)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:5000/admin.html)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:5000/admin.html)",
+      "Bash(curl -s -o /dev/null -w \"site: %{http_code}\\\\n\" http://localhost:5000/)"
     ]
   }
 }
