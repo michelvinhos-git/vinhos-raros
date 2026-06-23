@@ -120,16 +120,16 @@ function renderBottle(wine) {
   if (wine.image) {
     return `
       <div class="bottle-wrap wine-photo-wrap" aria-hidden="true">
-        <img class="wine-photo" src="${wine.image}" alt="${wine.name}" loading="lazy" />
-        <span class="wine-photo-label" style="border-color:${wine.accent}; color:${wine.accent}">${wine.label}</span>
+        <img class="wine-photo" src="${esc(wine.image)}" alt="${esc(wine.name)}" loading="lazy" />
+        <span class="wine-photo-label" style="border-color:${esc(wine.accent)}; color:${esc(wine.accent)}">${esc(wine.label)}</span>
       </div>
     `;
   }
   return `
     <div class="bottle-wrap" aria-hidden="true">
-      <div class="bottle-neck" style="background:${wine.color}"></div>
-      <div class="bottle" style="background:linear-gradient(135deg, ${wine.color}, #1b1114 72%)">
-        <span style="border-color:${wine.accent}; color:${wine.accent}">${wine.label}</span>
+      <div class="bottle-neck" style="background:${esc(wine.color)}"></div>
+      <div class="bottle" style="background:linear-gradient(135deg, ${esc(wine.color)}, #1b1114 72%)">
+        <span style="border-color:${esc(wine.accent)}; color:${esc(wine.accent)}">${esc(wine.label)}</span>
       </div>
     </div>
   `;
@@ -461,6 +461,8 @@ function buildTypeNav() {
       const chosen = btn.dataset.filterType;
       const isActive = btn.classList.contains('active');
       container.querySelectorAll('.cat-type-btn').forEach((b) => b.classList.remove('active'));
+      document.querySelectorAll('.cat-country').forEach((b) => b.classList.remove('active'));
+      activeCountry = '';
       if (!isActive) {
         btn.classList.add('active');
         activeFilter = chosen;
@@ -494,12 +496,14 @@ function buildCountryNav() {
   container.querySelectorAll(".cat-country").forEach((btn) => {
     btn.addEventListener("click", () => {
       const chosen = btn.dataset.filterCountry;
-      if (activeCountry === chosen) {
+      const isActive = activeCountry === chosen;
+      document.querySelectorAll(".cat-type-btn").forEach((b) => b.classList.remove("active"));
+      activeFilter = "Todos";
+      container.querySelectorAll(".cat-country").forEach((b) => b.classList.remove("active"));
+      if (isActive) {
         activeCountry = "";
-        btn.classList.remove("active");
       } else {
         activeCountry = chosen;
-        container.querySelectorAll(".cat-country").forEach((b) => b.classList.remove("active"));
         btn.classList.add("active");
       }
       document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth", block: "start" });

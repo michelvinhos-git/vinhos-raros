@@ -15,7 +15,8 @@
       "Bash(curl -s -o /dev/null -w \"status: %{http_code}\\\\n\" http://localhost:5000/)",
       "Bash(curl -s -o /dev/null -w \"app.js: %{http_code}\\\\n\" http://localhost:5000/app.js)",
       "Bash(curl -s -o /dev/null -w \"wines: %{http_code} | \" http://localhost:5000/api/wines)",
-      "Bash(curl -s http://localhost:5000/api/wines)"
+      "Bash(curl -s http://localhost:5000/api/wines)",
+      "Bash(git rm *)"
     ]
   }
 }

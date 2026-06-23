@@ -1,0 +1,8 @@
+node_modules/
+uploads/
+wines.db
+wines.db-journal
+wines.db-wal
+wines.db-shm
+.DS_Store
+*.log

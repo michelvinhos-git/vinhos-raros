@@ -269,6 +269,42 @@ db.exec(`
 `);
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+if (ADMIN_PASSWORD === 'admin123') {
+  console.warn('\x1b[33m[AVISO] Senha de admin padrão em uso. Defina a variável de ambiente ADMIN_PASSWORD em produção.\x1b[0m');
+}
+
+// Sessão expira após 7 dias
+const SESSION_TTL = 60 * 60 * 24 * 7;
+function cleanupSessions() {
+  db.prepare("DELETE FROM sessions WHERE created_at < strftime('%s','now') - ?").run(SESSION_TTL);
+}
+cleanupSessions();
+setInterval(cleanupSessions, 60 * 60 * 1000).unref();
+
+// Rate limit simples de login por IP
+const loginAttempts = new Map();
+const LOGIN_MAX = 8;
+const LOGIN_WINDOW = 15 * 60 * 1000;
+function loginRateLimit(req, res, next) {
+  const ip = req.ip || req.connection.remoteAddress || 'unknown';
+  const now = Date.now();
+  const rec = loginAttempts.get(ip);
+  if (rec && now < rec.until && rec.count >= LOGIN_MAX) {
+    const mins = Math.ceil((rec.until - now) / 60000);
+    return res.status(429).json({ error: `Muitas tentativas. Tente novamente em ${mins} min.` });
+  }
+  next();
+}
+function registerLoginFailure(req) {
+  const ip = req.ip || req.connection.remoteAddress || 'unknown';
+  const now = Date.now();
+  const rec = loginAttempts.get(ip);
+  if (!rec || now >= rec.until) {
+    loginAttempts.set(ip, { count: 1, until: now + LOGIN_WINDOW });
+  } else {
+    rec.count += 1;
+  }
+}
 
 function extractToken(req) {
   const auth = req.headers.authorization || '';
@@ -281,7 +317,9 @@ function extractToken(req) {
 function requireAuth(req, res, next) {
   const token = extractToken(req);
   if (!token) return res.status(401).json({ error: 'Não autorizado' });
-  const row = db.prepare('SELECT token FROM sessions WHERE token = ?').get(token);
+  const row = db.prepare(
+    "SELECT token FROM sessions WHERE token = ? AND created_at >= strftime('%s','now') - ?"
+  ).get(token, SESSION_TTL);
   if (!row) return res.status(401).json({ error: 'Sessão expirada. Faça login novamente.' });
   next();
 }
@@ -298,9 +336,27 @@ function parseWine(w) {
   };
 }
 
-app.post('/api/auth/login', (req, res) => {
+// Remove um arquivo de /uploads se ele não estiver mais referenciado em lugar nenhum
+function isUpload(url) {
+  return typeof url === 'string' && url.startsWith('/uploads/');
+}
+function imageReferenced(url) {
+  if (!isUpload(url)) return true;
+  const w = db.prepare('SELECT 1 FROM wines WHERE image = ? LIMIT 1').get(url);
+  const c = db.prepare('SELECT 1 FROM carousel WHERE image = ? LIMIT 1').get(url);
+  const s = db.prepare('SELECT 1 FROM settings WHERE value = ? LIMIT 1').get(url);
+  return !!(w || c || s);
+}
+function removeUploadIfUnused(url) {
+  if (isUpload(url) && !imageReferenced(url)) {
+    fs.unlink(path.join(__dirname, url), () => {});
+  }
+}
+
+app.post('/api/auth/login', loginRateLimit, (req, res) => {
   const { password } = req.body;
   if (password !== ADMIN_PASSWORD) {
+    registerLoginFailure(req);
     return res.status(401).json({ error: 'Senha incorreta' });
   }
   const token = crypto.randomUUID();
@@ -359,6 +415,7 @@ app.post('/api/wines', requireAuth, (req, res) => {
 
 app.put('/api/wines/:id', requireAuth, (req, res) => {
   const w = req.body;
+  const prev = db.prepare('SELECT image FROM wines WHERE id = ?').get(req.params.id);
   const result = db.prepare(`
     UPDATE wines SET name=?,year=?,region=?,country=?,type=?,grape=?,price=?,oldPrice=?,stock=?,color=?,accent=?,label=?,short=?,history=?,tasting=?,pairings=?,scores=?,image=?
     WHERE id=?
@@ -371,17 +428,15 @@ app.put('/api/wines/:id', requireAuth, (req, res) => {
     req.params.id
   );
   if (result.changes === 0) return res.status(404).json({ error: 'Vinho não encontrado' });
+  if (prev && prev.image && prev.image !== (w.image || '')) removeUploadIfUnused(prev.image);
   res.json(parseWine(db.prepare('SELECT * FROM wines WHERE id = ?').get(req.params.id)));
 });
 
 app.delete('/api/wines/:id', requireAuth, (req, res) => {
   const wine = db.prepare('SELECT image FROM wines WHERE id = ?').get(req.params.id);
   if (!wine) return res.status(404).json({ error: 'Vinho não encontrado' });
-  if (wine.image && wine.image.startsWith('/uploads/')) {
-    const filePath = path.join(__dirname, wine.image);
-    fs.unlink(filePath, () => {});
-  }
   db.prepare('DELETE FROM wines WHERE id = ?').run(req.params.id);
+  removeUploadIfUnused(wine.image);
   res.json({ ok: true });
 });
 
@@ -408,22 +463,22 @@ app.put('/api/carousel/:id', requireAuth, (req, res) => {
   const { title, subtitle, cta_text, cta_link, bg_color, image, active, sort_order } = req.body;
   const slide = db.prepare('SELECT * FROM carousel WHERE id=?').get(req.params.id);
   if (!slide) return res.status(404).json({ error: 'Slide não encontrado' });
+  const newImage = image ?? slide.image;
   db.prepare(`UPDATE carousel SET image=?,title=?,subtitle=?,cta_text=?,cta_link=?,bg_color=?,active=?,sort_order=? WHERE id=?`)
     .run(
-      image ?? slide.image, title ?? slide.title, subtitle ?? slide.subtitle,
+      newImage, title ?? slide.title, subtitle ?? slide.subtitle,
       cta_text ?? slide.cta_text, cta_link ?? slide.cta_link, bg_color ?? slide.bg_color,
       active ?? slide.active, sort_order ?? slide.sort_order, req.params.id
     );
+  if (slide.image && slide.image !== newImage) removeUploadIfUnused(slide.image);
   res.json(db.prepare('SELECT * FROM carousel WHERE id=?').get(req.params.id));
 });
 
 app.delete('/api/carousel/:id', requireAuth, (req, res) => {
   const slide = db.prepare('SELECT image FROM carousel WHERE id=?').get(req.params.id);
   if (!slide) return res.status(404).json({ error: 'Slide não encontrado' });
-  if (slide.image && slide.image.startsWith('/uploads/')) {
-    fs.unlink(path.join(__dirname, slide.image), () => {});
-  }
   db.prepare('DELETE FROM carousel WHERE id=?').run(req.params.id);
+  removeUploadIfUnused(slide.image);
   res.json({ ok: true });
 });
 
