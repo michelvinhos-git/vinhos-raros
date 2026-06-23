@@ -153,11 +153,11 @@
   justify-content: space-between;
   padding: 0 clamp(18px, 4vw, 56px);
   height: 68px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
+  border-bottom: 3px solid #8b1537;
 }
 
 [data-theme="dark"] .topbar-main {
-  border-bottom-color: rgba(214,176,91,0.10);
+  border-bottom-color: #8b1537;
 }
 
 .topbar-brand {
