@@ -1,6 +1,22 @@
-/* ── Tema ── */
+/* ── Tema e identidade ── */
+function applyBranding(s) {
+  const name = (s && s.site_name) || 'Vinhos Raros';
+  const logo = (s && s.logo) || '/logo.png';
+  document.querySelectorAll('[data-site-logo]').forEach((img) => {
+    img.src = logo;
+    img.alt = name;
+  });
+  document.querySelectorAll('[data-site-name]').forEach((el) => {
+    el.textContent = name;
+  });
+  if (document.title.includes('Vinhos Raros')) {
+    document.title = document.title.replace('Vinhos Raros', name);
+  }
+}
+
 fetch('/api/settings').then(r => r.json()).then(s => {
   document.documentElement.setAttribute('data-theme', s.theme || 'dark');
+  applyBranding(s);
 }).catch(() => {
   document.documentElement.setAttribute('data-theme', 'dark');
 });

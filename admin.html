@@ -216,6 +216,25 @@
         font-size: .75rem; color: var(--gold);
       }
 
+      /* ── Identidade do site ── */
+      .identity-grid {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+        align-items: start; max-width: 720px;
+      }
+      .identity-hint {
+        margin: .5rem 0 0; font-size: .8rem; color: var(--muted);
+        text-transform: none; letter-spacing: 0; font-weight: 400;
+      }
+      .logo-upload-preview {
+        max-height: 90px; max-width: 220px; object-fit: contain; display: block;
+        background: var(--panel-soft); border-radius: 8px; padding: .4rem;
+      }
+      .identity-actions {
+        display: flex; align-items: center; gap: 1rem; margin-top: 1.5rem;
+      }
+      #identity-status { font-size: .88rem; color: var(--muted); }
+      @media (max-width: 560px) { .identity-grid { grid-template-columns: 1fr; } }
+
       /* ── Carousel slides ── */
       .slides-grid {
         display: grid;
@@ -336,6 +355,34 @@
           </div>
           <div id="carousel-slides-container">
             <div class="table-empty">Carregando slides...</div>
+          </div>
+        </div>
+
+        <div class="admin-section">
+          <h2>Identidade do Site</h2>
+          <div class="identity-grid">
+            <div>
+              <label for="site-name-input">Nome do site</label>
+              <input type="text" id="site-name-input" placeholder="Ex: Vinhos Raros" />
+              <p class="identity-hint">Aparece no topo do site, no título da aba e como texto alternativo do logo.</p>
+            </div>
+            <div>
+              <label>Logo</label>
+              <div class="slide-upload-area" id="logo-upload-area" style="min-height:110px">
+                <input type="file" id="logo-image-file" accept="image/jpeg,image/png,image/webp" />
+                <img class="logo-upload-preview" id="logo-preview" src="" alt="" style="display:none" />
+                <div class="slide-upload-placeholder" id="logo-placeholder">
+                  📷 Clique para enviar o logo<br/>
+                  <small>PNG, JPG ou WEBP · máx 10MB</small>
+                </div>
+                <span id="logo-upload-status" style="position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:.8rem;color:var(--gold)"></span>
+              </div>
+              <input type="hidden" id="logo-hidden" />
+            </div>
+          </div>
+          <div class="identity-actions">
+            <button class="btn-primary" id="save-identity-btn">Salvar identidade</button>
+            <span id="identity-status"></span>
           </div>
         </div>
 

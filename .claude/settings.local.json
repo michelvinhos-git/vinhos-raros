@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -c server.js)",
+      "Bash(node -c app.js)",
+      "Bash(node -c admin.js)",
+      "Bash(pkill -f \"node server.js\")",
+      "Bash(pkill -9 -f \"node server.js\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5000/)",
+      "Bash(node *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:5000/)",
+      "Bash(curl -s http://localhost:5000/api/settings)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:5000/admin.html)"
+    ]
+  }
+}

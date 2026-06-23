@@ -552,6 +552,94 @@ async function deleteSlide(id) {
   loadSlides();
 }
 
+/* ── Identidade do site ── */
+const siteNameInput    = document.getElementById('site-name-input');
+const logoImageFile    = document.getElementById('logo-image-file');
+const logoHidden       = document.getElementById('logo-hidden');
+const logoPreview      = document.getElementById('logo-preview');
+const logoPlaceholder  = document.getElementById('logo-placeholder');
+const logoUploadStatus = document.getElementById('logo-upload-status');
+const saveIdentityBtn  = document.getElementById('save-identity-btn');
+const identityStatus   = document.getElementById('identity-status');
+
+function setLogoPreview(url) {
+  if (url) {
+    logoHidden.value = url;
+    logoPreview.src = url;
+    logoPreview.style.display = 'block';
+    logoPlaceholder.style.display = 'none';
+  } else {
+    logoHidden.value = '';
+    logoPreview.src = '';
+    logoPreview.style.display = 'none';
+    logoPlaceholder.style.display = 'flex';
+  }
+}
+
+async function loadIdentity() {
+  try {
+    const res = await fetch('/api/settings');
+    const data = await res.json();
+    siteNameInput.value = data.site_name || 'Vinhos Raros';
+    setLogoPreview(data.logo || '');
+  } catch {}
+}
+
+logoImageFile.addEventListener('change', async () => {
+  const file = logoImageFile.files[0];
+  if (!file) return;
+  logoUploadStatus.textContent = 'Enviando...';
+  try {
+    const fd = new FormData();
+    fd.append('image', file);
+    const r = await fetch(`/api/upload?token=${encodeURIComponent(token)}`, { method: 'POST', body: fd });
+    if (r.status === 401) { token = ''; sessionStorage.removeItem('vr_admin_token'); showLogin(); return; }
+    const data = await r.json();
+    if (data.url) {
+      setLogoPreview(data.url);
+      logoUploadStatus.textContent = '✓ Logo enviado';
+    } else {
+      logoUploadStatus.textContent = data.error || 'Erro no upload';
+    }
+  } catch {
+    logoUploadStatus.textContent = 'Erro de conexão no upload';
+  }
+});
+
+saveIdentityBtn.addEventListener('click', async () => {
+  const site_name = siteNameInput.value.trim();
+  if (!site_name) {
+    identityStatus.style.color = '#e05555';
+    identityStatus.textContent = 'Informe o nome do site.';
+    return;
+  }
+  saveIdentityBtn.disabled = true;
+  identityStatus.style.color = 'var(--muted)';
+  identityStatus.textContent = 'Salvando...';
+  try {
+    const res = await fetch('/api/settings', {
+      method: 'PUT',
+      headers: authHeader(),
+      body: JSON.stringify({ site_name, logo: logoHidden.value || '/logo.png' })
+    });
+    if (res.status === 401) { token = ''; sessionStorage.removeItem('vr_admin_token'); showLogin(); return; }
+    if (res.ok) {
+      identityStatus.style.color = '#2ecc71';
+      identityStatus.textContent = '✓ Identidade salva com sucesso';
+      setTimeout(() => { identityStatus.textContent = ''; }, 2500);
+    } else {
+      const d = await res.json();
+      identityStatus.style.color = '#e05555';
+      identityStatus.textContent = d.error || 'Erro ao salvar.';
+    }
+  } catch {
+    identityStatus.style.color = '#e05555';
+    identityStatus.textContent = 'Erro de conexão. Tente novamente.';
+  } finally {
+    saveIdentityBtn.disabled = false;
+  }
+});
+
 /* ── Theme ── */
 async function loadTheme() {
   try {
@@ -585,6 +673,7 @@ document.querySelectorAll('.theme-btn').forEach(btn => {
 
 /* ── Init ── */
 loadTheme();
+loadIdentity();
 if (token) {
   fetch('/api/auth/verify', { headers: authHeader() }).then(r => {
     if (r.ok) { showAdmin(); loadWines(); }

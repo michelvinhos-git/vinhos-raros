@@ -68,8 +68,12 @@ db.exec(`
     value TEXT NOT NULL
   )
 `);
-const themeRow = db.prepare("SELECT value FROM settings WHERE key = 'theme'").get();
-if (!themeRow) db.prepare("INSERT INTO settings (key, value) VALUES ('theme', 'dark')").run();
+const defaultSettings = { theme: 'dark', site_name: 'Vinhos Raros', logo: '/logo.png' };
+const seedSetting = db.prepare("INSERT INTO settings (key, value) VALUES (?, ?)");
+for (const [key, value] of Object.entries(defaultSettings)) {
+  const row = db.prepare("SELECT value FROM settings WHERE key = ?").get(key);
+  if (!row) seedSetting.run(key, value);
+}
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS carousel (
@@ -419,16 +423,36 @@ app.delete('/api/carousel/:id', requireAuth, (req, res) => {
 });
 
 /* ── Settings ── */
+function readSettings() {
+  const out = { ...defaultSettings };
+  for (const row of db.prepare("SELECT key, value FROM settings").all()) {
+    out[row.key] = row.value;
+  }
+  return out;
+}
+
 app.get('/api/settings', (req, res) => {
-  const theme = db.prepare("SELECT value FROM settings WHERE key = 'theme'").get();
-  res.json({ theme: theme ? theme.value : 'dark' });
+  res.json(readSettings());
 });
 
 app.put('/api/settings', requireAuth, (req, res) => {
-  const { theme } = req.body;
-  if (!['dark', 'light'].includes(theme)) return res.status(400).json({ error: 'Tema inválido' });
-  db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('theme', ?)").run(theme);
-  res.json({ ok: true, theme });
+  const { theme, site_name, logo } = req.body;
+  const set = db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)");
+
+  if (theme !== undefined) {
+    if (!['dark', 'light'].includes(theme)) return res.status(400).json({ error: 'Tema inválido' });
+    set.run('theme', theme);
+  }
+  if (site_name !== undefined) {
+    const name = String(site_name).trim();
+    if (!name) return res.status(400).json({ error: 'O nome do site não pode ficar vazio' });
+    set.run('site_name', name);
+  }
+  if (logo !== undefined) {
+    set.run('logo', String(logo).trim() || '/logo.png');
+  }
+
+  res.json({ ok: true, ...readSettings() });
 });
 
 app.get('/admin', (req, res) => res.redirect('/admin.html'));
