@@ -7,60 +7,102 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <header class="topbar">
-      <a class="brand" href="index.html" aria-label="Vinhos Raros inicio">
-        <span class="brand-mark">VR</span>
-        <span>Vinhos Raros</span>
-      </a>
-      <nav class="nav-links" aria-label="Navegacao principal">
-        <a href="#catalogo">Catalogo</a>
-        <a href="#curadoria">Curadoria</a>
-        <a href="#beneficios">Beneficios</a>
+
+    <header class="site-header">
+      <div class="topbar-main">
+        <a class="topbar-brand" href="index.html" aria-label="Vinhos Raros início">
+          <img src="/logo.png" alt="Vinhos Raros" class="topbar-logo" />
+        </a>
+        <nav class="topbar-nav" aria-label="Links principais">
+          <a href="#curadoria">Curadoria</a>
+          <a href="#beneficios">Benefícios</a>
+        </nav>
+        <button class="cart-button" type="button" data-cart-toggle aria-label="Abrir carrinho">
+          <span class="cart-icon" aria-hidden="true"></span>
+          <span data-cart-count>0</span>
+        </button>
+      </div>
+      <nav class="nav-categories" aria-label="Categorias de vinhos">
+        <a href="#catalogo" class="cat-link" data-filter-cat="Todos">Vinhos</a>
+        <a href="#catalogo" class="cat-link" data-filter-cat="Espumante">Espumantes</a>
+        <a href="#catalogo" class="cat-link" data-filter-cat="Branco">Brancos</a>
+        <a href="#catalogo" class="cat-link" data-filter-cat="Tinto">Tintos</a>
+        <a href="#catalogo" class="cat-link" data-filter-cat="Rose">Rosés</a>
+        <a href="#catalogo" class="cat-link" data-filter-cat="Fortificado">Fortificados</a>
+        <a href="#curadoria" class="cat-link">Curadoria</a>
+        <a href="#beneficios" class="cat-link">Benefícios</a>
       </nav>
-      <button class="cart-button" type="button" data-cart-toggle aria-label="Abrir carrinho">
-        <span class="cart-icon" aria-hidden="true"></span>
-        <span data-cart-count>0</span>
-      </button>
     </header>
 
     <main>
-      <section class="hero">
-        <img src="assets/vinhos-raros-hero.png" alt="Garrafas raras de vinho em uma mesa de degustacao" />
-        <div class="hero-overlay"></div>
-        <div class="hero-content">
-          <p class="eyebrow">Garrafas de producao limitada</p>
-          <h1>Vinhos Raros</h1>
-          <p>
-            Uma curadoria de safras historicas, regioes lendarias e rotulos com pontuacoes altas para colecionar, presentear e abrir no momento certo.
-          </p>
-          <div class="hero-actions">
-            <a class="primary-action" href="#catalogo">Ver catalogo</a>
-            <a class="secondary-action" href="#curadoria">Como escolhemos</a>
+      <section class="hero-carousel" aria-label="Destaques">
+        <div class="carousel-track" id="carouselTrack">
+          <div class="carousel-slide">
+            <img src="assets/vinhos-raros-hero.png" alt="Garrafas raras de vinho" class="carousel-img" />
+            <div class="carousel-overlay"></div>
+            <div class="carousel-content">
+              <p class="eyebrow">Garrafas de produção limitada</p>
+              <h1>Vinhos Raros</h1>
+              <p>Uma curadoria de safras históricas, regiões lendárias e rótulos com pontuações altas para colecionar, presentear e abrir no momento certo.</p>
+              <div class="hero-actions">
+                <a class="primary-action" href="#catalogo">Ver catálogo</a>
+                <a class="secondary-action" href="#curadoria">Como escolhemos</a>
+              </div>
+            </div>
           </div>
+          <div class="carousel-slide carousel-slide--promo">
+            <div class="carousel-promo-bg"></div>
+            <div class="carousel-content">
+              <p class="eyebrow">Coleção exclusiva</p>
+              <h1>Bordeaux<br/>Premier Cru</h1>
+              <p>As melhores safras dos châteaux mais icônicos da França, selecionadas para colecionadores e apreciadores.</p>
+              <div class="hero-actions">
+                <a class="primary-action" href="#catalogo">Explorar coleção</a>
+              </div>
+            </div>
+          </div>
+          <div class="carousel-slide carousel-slide--promo2">
+            <div class="carousel-promo-bg"></div>
+            <div class="carousel-content">
+              <p class="eyebrow">Novidade</p>
+              <h1>Safra 2018<br/>Barolo</h1>
+              <p>Vinhos de guarda com taninos precisos, notas de cereja e alcaçuz — um dos melhores anos da última década.</p>
+              <div class="hero-actions">
+                <a class="primary-action" href="#catalogo">Ver vinhos</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="carousel-btn carousel-prev" id="carouselPrev" aria-label="Slide anterior">&#8249;</button>
+        <button class="carousel-btn carousel-next" id="carouselNext" aria-label="Próximo slide">&#8250;</button>
+        <div class="carousel-dots" id="carouselDots">
+          <button class="dot active" data-index="0" aria-label="Slide 1"></button>
+          <button class="dot" data-index="1" aria-label="Slide 2"></button>
+          <button class="dot" data-index="2" aria-label="Slide 3"></button>
         </div>
       </section>
 
-      <section class="stats-band" id="beneficios" aria-label="Beneficios">
+      <section class="stats-band" id="beneficios" aria-label="Benefícios">
         <div>
           <strong>96+</strong>
-          <span>media dos destaques</span>
+          <span>média dos destaques</span>
         </div>
         <div>
           <strong>12h</strong>
-          <span>separacao climatizada</span>
+          <span>separação climatizada</span>
         </div>
         <div>
           <strong>100%</strong>
-          <span>procedencia verificada</span>
+          <span>procedência verificada</span>
         </div>
       </section>
 
       <section class="catalog-shell" id="catalogo">
         <div class="section-heading">
-          <p class="eyebrow">Catalogo</p>
+          <p class="eyebrow">Catálogo</p>
           <h2>Garrafas em destaque</h2>
         </div>
-        <div class="toolbar" role="group" aria-label="Filtros do catalogo">
+        <div class="toolbar" role="group" aria-label="Filtros do catálogo">
           <button class="filter active" type="button" data-filter="Todos">Todos</button>
           <button class="filter" type="button" data-filter="Tinto">Tintos</button>
           <button class="filter" type="button" data-filter="Espumante">Espumantes</button>
@@ -74,10 +116,10 @@
       <section class="curation" id="curadoria">
         <div>
           <p class="eyebrow">Curadoria</p>
-          <h2>Informacao clara antes da compra</h2>
+          <h2>Informação clara antes da compra</h2>
         </div>
         <p>
-          Cada pagina de vinho combina historia da safra, regiao, uvas, notas de degustacao, harmonizacoes e pontuacoes de referencia, em um formato inspirado em fichas tecnicas de grandes buscadores internacionais de vinho.
+          Cada página de vinho combina história da safra, região, uvas, notas de degustação, harmonizações e pontuações de referência, em um formato inspirado em fichas técnicas de grandes buscadores internacionais de vinho.
         </p>
       </section>
     </main>

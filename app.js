@@ -1,7 +1,9 @@
 /* ── Tema ── */
 fetch('/api/settings').then(r => r.json()).then(s => {
-  if (s.theme && s.theme !== 'dark') document.documentElement.setAttribute('data-theme', s.theme);
-}).catch(() => {});
+  document.documentElement.setAttribute('data-theme', s.theme || 'dark');
+}).catch(() => {
+  document.documentElement.setAttribute('data-theme', 'dark');
+});
 
 const currency = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -164,3 +166,51 @@ async function init() {
 }
 
 init();
+
+/* ── Carrossel ── */
+(function () {
+  const track = document.getElementById('carouselTrack');
+  if (!track) return;
+  const total = track.querySelectorAll('.carousel-slide').length;
+  const dots  = document.querySelectorAll('#carouselDots .dot');
+  let current = 0;
+  let timer;
+
+  function goTo(idx) {
+    current = ((idx % total) + total) % total;
+    track.style.transform = `translateX(-${current * (100 / total)}%)`;
+    dots.forEach((d, i) => d.classList.toggle('active', i === current));
+  }
+
+  function resetTimer() {
+    clearInterval(timer);
+    timer = setInterval(() => goTo(current + 1), 5500);
+  }
+
+  document.getElementById('carouselPrev')
+    .addEventListener('click', () => { goTo(current - 1); resetTimer(); });
+  document.getElementById('carouselNext')
+    .addEventListener('click', () => { goTo(current + 1); resetTimer(); });
+  dots.forEach(d =>
+    d.addEventListener('click', () => { goTo(+d.dataset.index); resetTimer(); })
+  );
+
+  /* swipe em mobile */
+  let touchX = 0;
+  track.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, { passive: true });
+  track.addEventListener('touchend', e => {
+    const diff = touchX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) { goTo(current + (diff > 0 ? 1 : -1)); resetTimer(); }
+  });
+
+  /* filtro de categoria pelo segundo nav */
+  document.querySelectorAll('.cat-link[data-filter-cat]').forEach(link => {
+    link.addEventListener('click', () => {
+      const cat = link.dataset.filterCat;
+      const btn = document.querySelector(`[data-filter="${cat}"]`);
+      if (btn) btn.click();
+    });
+  });
+
+  resetTimer();
+})();
