@@ -168,13 +168,47 @@ async function init() {
 init();
 
 /* ── Carrossel ── */
-(function () {
-  const track = document.getElementById('carouselTrack');
+(async function () {
+  const track   = document.getElementById('carouselTrack');
+  const dotsWrap= document.getElementById('carouselDots');
   if (!track) return;
-  const total = track.querySelectorAll('.carousel-slide').length;
-  const dots  = document.querySelectorAll('#carouselDots .dot');
-  let current = 0;
-  let timer;
+
+  /* 1. buscar slides da API */
+  let slides = [];
+  try {
+    const r = await fetch('/api/carousel');
+    slides = await r.json();
+  } catch { slides = []; }
+
+  if (!slides.length) { track.closest('.hero-carousel').style.display = 'none'; return; }
+
+  /* 2. renderizar slides */
+  const total = slides.length;
+  track.style.width = `${total * 100}%`;
+
+  track.innerHTML = slides.map(s => {
+    const hasImg = s.image && s.image !== '';
+    return `
+      <div class="carousel-slide" style="width:${100/total}%;background:${hasImg ? s.bg_color : s.bg_color}">
+        ${hasImg ? `<img src="${s.image}" alt="${s.title}" class="carousel-img" /><div class="carousel-overlay"></div>` : ''}
+        <div class="carousel-content" style="${!hasImg ? 'max-width:100%;margin-left:0' : ''}">
+          <p class="eyebrow">Garrafas de produção limitada</p>
+          <h1>${s.title}</h1>
+          <p>${s.subtitle}</p>
+          <div class="hero-actions">
+            <a class="primary-action" href="${s.cta_link}">${s.cta_text}</a>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  dotsWrap.innerHTML = slides.map((_, i) =>
+    `<button class="dot${i===0?' active':''}" data-index="${i}" aria-label="Slide ${i+1}"></button>`
+  ).join('');
+
+  /* 3. lógica de navegação */
+  const dots = dotsWrap.querySelectorAll('.dot');
+  let current = 0, timer;
 
   function goTo(idx) {
     current = ((idx % total) + total) % total;
@@ -187,15 +221,10 @@ init();
     timer = setInterval(() => goTo(current + 1), 5500);
   }
 
-  document.getElementById('carouselPrev')
-    .addEventListener('click', () => { goTo(current - 1); resetTimer(); });
-  document.getElementById('carouselNext')
-    .addEventListener('click', () => { goTo(current + 1); resetTimer(); });
-  dots.forEach(d =>
-    d.addEventListener('click', () => { goTo(+d.dataset.index); resetTimer(); })
-  );
+  document.getElementById('carouselPrev').addEventListener('click', () => { goTo(current - 1); resetTimer(); });
+  document.getElementById('carouselNext').addEventListener('click', () => { goTo(current + 1); resetTimer(); });
+  dots.forEach(d => d.addEventListener('click', () => { goTo(+d.dataset.index); resetTimer(); }));
 
-  /* swipe em mobile */
   let touchX = 0;
   track.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, { passive: true });
   track.addEventListener('touchend', e => {
@@ -206,8 +235,7 @@ init();
   /* filtro de categoria pelo segundo nav */
   document.querySelectorAll('.cat-link[data-filter-cat]').forEach(link => {
     link.addEventListener('click', () => {
-      const cat = link.dataset.filterCat;
-      const btn = document.querySelector(`[data-filter="${cat}"]`);
+      const btn = document.querySelector(`[data-filter="${link.dataset.filterCat}"]`);
       if (btn) btn.click();
     });
   });

@@ -216,6 +216,60 @@
         font-size: .75rem; color: var(--gold);
       }
 
+      /* ── Carousel slides ── */
+      .slides-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 1rem;
+      }
+      .slide-card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+      .slide-thumb {
+        width: 100%; height: 130px;
+        object-fit: cover; display: block;
+      }
+      .slide-thumb-color {
+        width: 100%; height: 130px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 2rem; color: rgba(255,255,255,.3);
+      }
+      .slide-card-body { padding: 1rem; }
+      .slide-card-body strong { display: block; color: var(--ink); font-size: .95rem; margin-bottom: .25rem; }
+      .slide-card-body small { color: var(--muted); font-size: .8rem; display: block; margin-bottom: .75rem;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .slide-card-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+      .slide-inactive { opacity: .5; }
+
+      /* ── Slide modal ── */
+      #slide-overlay {
+        display: none; position: fixed; inset: 0; z-index: 50;
+        background: rgba(0,0,0,.75); backdrop-filter: blur(4px);
+        align-items: center; justify-content: center; padding: 1rem;
+      }
+      #slide-overlay.open { display: flex; }
+      #slide-modal-box {
+        background: var(--panel); border: 1px solid var(--line);
+        border-radius: var(--radius); width: 100%; max-width: 560px;
+        max-height: 90vh; display: flex; flex-direction: column;
+      }
+      #slide-form { overflow-y: auto; padding: 1.75rem; flex: 1; display: flex; flex-direction: column; gap: 1rem; }
+      .slide-upload-area {
+        border: 2px dashed var(--line); border-radius: 12px;
+        overflow: hidden; cursor: pointer;
+        min-height: 120px; display: flex; align-items: center; justify-content: center;
+        position: relative; transition: border-color .15s;
+      }
+      .slide-upload-area:hover { border-color: var(--gold); }
+      .slide-upload-area input[type=file] {
+        position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+      }
+      .slide-upload-preview { width: 100%; height: 140px; object-fit: cover; display: block; }
+      .slide-upload-placeholder { color: var(--muted); font-size: .88rem; text-align: center; padding: 1.5rem; }
+
       /* ── Confirm dialog ── */
       #confirm-overlay {
         display: none; position: fixed; inset: 0; z-index: 60;
@@ -273,6 +327,16 @@
         </div>
         <div id="wines-table-container">
           <div class="table-empty">Carregando vinhos...</div>
+        </div>
+
+        <div class="admin-section">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+            <h2 style="margin:0">Carrossel</h2>
+            <button class="btn-primary" id="add-slide-btn">+ Novo Slide</button>
+          </div>
+          <div id="carousel-slides-container">
+            <div class="table-empty">Carregando slides...</div>
+          </div>
         </div>
 
         <div class="admin-section">
@@ -395,6 +459,62 @@
           <span id="form-error"></span>
           <button class="btn-cancel" id="form-cancel">Cancelar</button>
           <button class="btn-primary" id="form-save">Salvar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide Modal -->
+    <div id="slide-overlay">
+      <div id="slide-modal-box" role="dialog" aria-modal="true">
+        <div class="modal-header">
+          <h3 id="slide-modal-title">Novo Slide</h3>
+          <button class="btn-close" id="slide-modal-close" aria-label="Fechar">×</button>
+        </div>
+        <div id="slide-form">
+          <div>
+            <label>Imagem do slide</label>
+            <div class="slide-upload-area" id="slide-upload-area">
+              <input type="file" id="slide-image-file" accept="image/jpeg,image/png,image/webp" />
+              <img class="slide-upload-preview" id="slide-upload-preview" src="" alt="" style="display:none" />
+              <div class="slide-upload-placeholder" id="slide-upload-placeholder">
+                📷 Clique para enviar uma imagem<br/>
+                <small>JPG, PNG ou WEBP · máx 10MB</small>
+              </div>
+              <span id="slide-upload-status" style="position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:.8rem;color:var(--gold)"></span>
+            </div>
+            <input type="hidden" id="slide-image-hidden" />
+          </div>
+          <div class="form-grid">
+            <div class="form-full">
+              <label for="slide-title">Título *</label>
+              <input type="text" id="slide-title" placeholder="Ex: Bordeaux Premier Cru" />
+            </div>
+            <div class="form-full">
+              <label for="slide-subtitle">Descrição</label>
+              <textarea id="slide-subtitle" rows="2" placeholder="Texto descritivo do slide"></textarea>
+            </div>
+            <div>
+              <label for="slide-cta-text">Texto do botão</label>
+              <input type="text" id="slide-cta-text" placeholder="Ver catálogo" />
+            </div>
+            <div>
+              <label for="slide-cta-link">Link do botão</label>
+              <input type="text" id="slide-cta-link" placeholder="#catalogo" />
+            </div>
+            <div>
+              <label for="slide-bg-color">Cor de fundo</label>
+              <input type="color" id="slide-bg-color" value="#5c0f24" />
+            </div>
+            <div style="display:flex;align-items:center;gap:.75rem;padding-top:1.4rem">
+              <input type="checkbox" id="slide-active" style="width:auto;height:18px;accent-color:var(--gold)" />
+              <label for="slide-active" style="text-transform:none;font-size:.92rem;margin:0">Slide ativo</label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <span id="slide-form-error" style="color:#e05555;font-size:.85rem;flex:1"></span>
+          <button class="btn-cancel" id="slide-cancel">Cancelar</button>
+          <button class="btn-primary" id="slide-save">Salvar</button>
         </div>
       </div>
     </div>

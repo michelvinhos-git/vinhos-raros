@@ -38,7 +38,7 @@ const confirmOk      = document.getElementById('confirm-ok');
 
 /* ── Auth ── */
 function showLogin()  { loginScreen.style.display = 'flex'; adminPanel.style.display = 'none'; }
-function showAdmin()  { loginScreen.style.display = 'none'; adminPanel.style.display = 'block'; }
+function showAdmin()  { loginScreen.style.display = 'none'; adminPanel.style.display = 'block'; loadSlides(); }
 
 loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -379,6 +379,178 @@ confirmOk.addEventListener('click', async () => {
     confirmOk.disabled = false;
   }
 });
+
+/* ── Carousel ── */
+let editingSlideId = null;
+
+const slideOverlay    = document.getElementById('slide-overlay');
+const slideModalTitle = document.getElementById('slide-modal-title');
+const slideModalClose = document.getElementById('slide-modal-close');
+const slideCancel     = document.getElementById('slide-cancel');
+const slideSave       = document.getElementById('slide-save');
+const slideFormError  = document.getElementById('slide-form-error');
+const slideImageFile  = document.getElementById('slide-image-file');
+const slideImageHidden= document.getElementById('slide-image-hidden');
+const slidePreview    = document.getElementById('slide-upload-preview');
+const slidePlaceholder= document.getElementById('slide-upload-placeholder');
+const slideUploadStatus = document.getElementById('slide-upload-status');
+const slidesContainer = document.getElementById('carousel-slides-container');
+
+async function loadSlides() {
+  slidesContainer.innerHTML = '<div class="table-empty">Carregando slides...</div>';
+  try {
+    const r = await fetch(`/api/carousel/all?token=${token}`, { headers: authHeader() });
+    if (r.status === 401) { token = ''; sessionStorage.removeItem('vr_admin_token'); showLogin(); return; }
+    const slides = await r.json();
+    renderSlides(slides);
+  } catch {
+    slidesContainer.innerHTML = '<div class="table-empty">Erro ao carregar slides.</div>';
+  }
+}
+
+function renderSlides(slides) {
+  if (!slides.length) {
+    slidesContainer.innerHTML = '<div class="table-empty">Nenhum slide. Clique em "+ Novo Slide" para adicionar.</div>';
+    return;
+  }
+  slidesContainer.innerHTML = `<div class="slides-grid">${slides.map(s => `
+    <div class="slide-card${s.active ? '' : ' slide-inactive'}" data-id="${s.id}">
+      ${s.image
+        ? `<img class="slide-thumb" src="${s.image}" alt="${s.title}" />`
+        : `<div class="slide-thumb-color" style="background:${s.bg_color}">🍷</div>`}
+      <div class="slide-card-body">
+        <strong>${s.title || '(sem título)'}</strong>
+        <small>${s.subtitle || '—'}</small>
+        <div class="slide-card-actions">
+          <button class="btn-edit slide-edit-btn" data-id="${s.id}">Editar</button>
+          <button class="btn-edit" style="border-color:${s.active?'#c0392b':'var(--gold)'};color:${s.active?'#c0392b':'var(--gold)'}" data-toggle="${s.id}" data-active="${s.active}">
+            ${s.active ? 'Desativar' : 'Ativar'}
+          </button>
+          <button class="btn-delete slide-delete-btn" data-id="${s.id}">Excluir</button>
+        </div>
+      </div>
+    </div>`).join('')}</div>`;
+
+  slidesContainer.querySelectorAll('.slide-edit-btn').forEach(b =>
+    b.addEventListener('click', () => openSlideModal(+b.dataset.id, slides)));
+  slidesContainer.querySelectorAll('[data-toggle]').forEach(b =>
+    b.addEventListener('click', () => toggleSlide(+b.dataset.toggle, +b.dataset.active)));
+  slidesContainer.querySelectorAll('.slide-delete-btn').forEach(b =>
+    b.addEventListener('click', () => deleteSlide(+b.dataset.id)));
+}
+
+function openSlideModal(id, slides) {
+  editingSlideId = id || null;
+  slideModalTitle.textContent = id ? 'Editar Slide' : 'Novo Slide';
+  slideFormError.textContent = '';
+
+  const s = id ? slides.find(x => x.id === id) : null;
+  document.getElementById('slide-title').value     = s?.title    || '';
+  document.getElementById('slide-subtitle').value  = s?.subtitle || '';
+  document.getElementById('slide-cta-text').value  = s?.cta_text || 'Ver catálogo';
+  document.getElementById('slide-cta-link').value  = s?.cta_link || '#catalogo';
+  document.getElementById('slide-bg-color').value  = s?.bg_color || '#5c0f24';
+  document.getElementById('slide-active').checked  = s ? !!s.active : true;
+  slideImageHidden.value = s?.image || '';
+
+  if (s?.image) {
+    slidePreview.src = s.image;
+    slidePreview.style.display = 'block';
+    slidePlaceholder.style.display = 'none';
+  } else {
+    slidePreview.style.display = 'none';
+    slidePlaceholder.style.display = 'flex';
+  }
+  slideUploadStatus.textContent = '';
+  slideOverlay.classList.add('open');
+}
+
+function closeSlideModal() {
+  slideOverlay.classList.remove('open');
+  editingSlideId = null;
+  slideImageFile.value = '';
+}
+
+slideModalClose.addEventListener('click', closeSlideModal);
+slideCancel.addEventListener('click', closeSlideModal);
+slideOverlay.addEventListener('click', e => { if (e.target === slideOverlay) closeSlideModal(); });
+
+document.getElementById('add-slide-btn').addEventListener('click', () => {
+  loadSlides().then(() => {
+    const allSlides = [];
+    openSlideModal(null, allSlides);
+  });
+  openSlideModal(null, []);
+});
+
+slideImageFile.addEventListener('change', async () => {
+  const file = slideImageFile.files[0];
+  if (!file) return;
+  slideUploadStatus.textContent = 'Enviando imagem...';
+  try {
+    const fd = new FormData();
+    fd.append('image', file);
+    const r = await fetch(`/api/upload?token=${token}`, { method: 'POST', body: fd });
+    if (r.status === 401) { token = ''; sessionStorage.removeItem('vr_admin_token'); showLogin(); return; }
+    const data = await r.json();
+    if (data.url) {
+      slideImageHidden.value = data.url;
+      slidePreview.src = data.url;
+      slidePreview.style.display = 'block';
+      slidePlaceholder.style.display = 'none';
+      slideUploadStatus.textContent = '✓ Imagem enviada';
+    } else {
+      slideUploadStatus.textContent = data.error || 'Erro no upload';
+    }
+  } catch {
+    slideUploadStatus.textContent = 'Erro de conexão no upload';
+  }
+});
+
+slideSave.addEventListener('click', async () => {
+  const title = document.getElementById('slide-title').value.trim();
+  if (!title) { slideFormError.textContent = 'Título é obrigatório.'; return; }
+  slideFormError.textContent = '';
+  slideSave.disabled = true;
+
+  const payload = {
+    title,
+    subtitle: document.getElementById('slide-subtitle').value.trim(),
+    cta_text: document.getElementById('slide-cta-text').value.trim() || 'Ver catálogo',
+    cta_link: document.getElementById('slide-cta-link').value.trim() || '#catalogo',
+    bg_color: document.getElementById('slide-bg-color').value,
+    active:   document.getElementById('slide-active').checked ? 1 : 0,
+    image:    slideImageHidden.value,
+  };
+
+  try {
+    const url    = editingSlideId ? `/api/carousel/${editingSlideId}` : '/api/carousel';
+    const method = editingSlideId ? 'PUT' : 'POST';
+    const r = await fetch(url, { method, headers: authHeader(), body: JSON.stringify(payload) });
+    if (r.status === 401) { token = ''; sessionStorage.removeItem('vr_admin_token'); showLogin(); return; }
+    if (!r.ok) { const d = await r.json(); slideFormError.textContent = d.error || 'Erro ao salvar'; return; }
+    closeSlideModal();
+    loadSlides();
+  } catch {
+    slideFormError.textContent = 'Erro de conexão. Tente novamente.';
+  } finally {
+    slideSave.disabled = false;
+  }
+});
+
+async function toggleSlide(id, currentActive) {
+  await fetch(`/api/carousel/${id}`, {
+    method: 'PUT', headers: authHeader(),
+    body: JSON.stringify({ active: currentActive ? 0 : 1 })
+  });
+  loadSlides();
+}
+
+async function deleteSlide(id) {
+  if (!confirm('Excluir este slide permanentemente?')) return;
+  await fetch(`/api/carousel/${id}`, { method: 'DELETE', headers: authHeader() });
+  loadSlides();
+}
 
 /* ── Theme ── */
 async function loadTheme() {

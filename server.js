@@ -71,6 +71,26 @@ db.exec(`
 const themeRow = db.prepare("SELECT value FROM settings WHERE key = 'theme'").get();
 if (!themeRow) db.prepare("INSERT INTO settings (key, value) VALUES ('theme', 'dark')").run();
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS carousel (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    image TEXT DEFAULT '',
+    title TEXT DEFAULT '',
+    subtitle TEXT DEFAULT '',
+    cta_text TEXT DEFAULT 'Ver catálogo',
+    cta_link TEXT DEFAULT '#catalogo',
+    bg_color TEXT DEFAULT '#5c0f24',
+    sort_order INTEGER DEFAULT 0,
+    active INTEGER DEFAULT 1
+  )
+`);
+if (db.prepare('SELECT COUNT(*) as cnt FROM carousel').get().cnt === 0) {
+  const ins = db.prepare(`INSERT INTO carousel (image,title,subtitle,cta_text,cta_link,bg_color,sort_order) VALUES (?,?,?,?,?,?,?)`);
+  ins.run('/assets/vinhos-raros-hero.png','Vinhos Raros','Uma curadoria de safras históricas, regiões lendárias e rótulos com pontuações altas para colecionar, presentear e abrir no momento certo.','Ver catálogo','#catalogo','#0d0a06',0);
+  ins.run('','Bordeaux Premier Cru','As melhores safras dos châteaux mais icônicos da França, selecionadas para colecionadores e apreciadores.','Explorar coleção','#catalogo','#5c0f24',1);
+  ins.run('','Safra 2018 Barolo','Vinhos de guarda com taninos precisos, notas de cereja e alcaçuz — um dos melhores anos da última década.','Ver vinhos','#catalogo','#1a0d06',2);
+}
+
 const seedWines = [
   {
     id: "barolo-riserva-2016",
@@ -353,6 +373,48 @@ app.delete('/api/wines/:id', requireAuth, (req, res) => {
     fs.unlink(filePath, () => {});
   }
   db.prepare('DELETE FROM wines WHERE id = ?').run(req.params.id);
+  res.json({ ok: true });
+});
+
+/* ── Carousel ── */
+app.get('/api/carousel', (req, res) => {
+  const slides = db.prepare('SELECT * FROM carousel WHERE active=1 ORDER BY sort_order').all();
+  res.json(slides);
+});
+
+app.get('/api/carousel/all', requireAuth, (req, res) => {
+  const slides = db.prepare('SELECT * FROM carousel ORDER BY sort_order').all();
+  res.json(slides);
+});
+
+app.post('/api/carousel', requireAuth, (req, res) => {
+  const { title, subtitle, cta_text, cta_link, bg_color, image } = req.body;
+  const maxOrder = db.prepare('SELECT MAX(sort_order) as m FROM carousel').get().m ?? -1;
+  const r = db.prepare(`INSERT INTO carousel (image,title,subtitle,cta_text,cta_link,bg_color,sort_order,active) VALUES (?,?,?,?,?,?,?,1)`)
+    .run(image||'', title||'', subtitle||'', cta_text||'Ver catálogo', cta_link||'#catalogo', bg_color||'#5c0f24', maxOrder+1);
+  res.status(201).json(db.prepare('SELECT * FROM carousel WHERE id=?').get(r.lastInsertRowid));
+});
+
+app.put('/api/carousel/:id', requireAuth, (req, res) => {
+  const { title, subtitle, cta_text, cta_link, bg_color, image, active, sort_order } = req.body;
+  const slide = db.prepare('SELECT * FROM carousel WHERE id=?').get(req.params.id);
+  if (!slide) return res.status(404).json({ error: 'Slide não encontrado' });
+  db.prepare(`UPDATE carousel SET image=?,title=?,subtitle=?,cta_text=?,cta_link=?,bg_color=?,active=?,sort_order=? WHERE id=?`)
+    .run(
+      image ?? slide.image, title ?? slide.title, subtitle ?? slide.subtitle,
+      cta_text ?? slide.cta_text, cta_link ?? slide.cta_link, bg_color ?? slide.bg_color,
+      active ?? slide.active, sort_order ?? slide.sort_order, req.params.id
+    );
+  res.json(db.prepare('SELECT * FROM carousel WHERE id=?').get(req.params.id));
+});
+
+app.delete('/api/carousel/:id', requireAuth, (req, res) => {
+  const slide = db.prepare('SELECT image FROM carousel WHERE id=?').get(req.params.id);
+  if (!slide) return res.status(404).json({ error: 'Slide não encontrado' });
+  if (slide.image && slide.image.startsWith('/uploads/')) {
+    fs.unlink(path.join(__dirname, slide.image), () => {});
+  }
+  db.prepare('DELETE FROM carousel WHERE id=?').run(req.params.id);
   res.json({ ok: true });
 });
 
