@@ -30,22 +30,55 @@
 }
 
 [data-theme="light"] .topbar {
-  background: rgba(245, 240, 232, 0.88);
-  border-color: rgba(139, 90, 43, 0.18);
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.10);
+  background: rgba(245, 240, 232, 0.92);
+  border-color: rgba(139, 90, 43, 0.16);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .nav-links {
+  color: #4a3520;
+}
+
+[data-theme="light"] .hero-overlay {
+  background:
+    linear-gradient(90deg, rgba(245,240,232,0.55), rgba(245,238,222,0.82)),
+    linear-gradient(0deg, rgba(240,232,215,0.72), transparent 50%);
+}
+
+[data-theme="light"] .hero-content {
+  color: #1a0d06;
+}
+
+[data-theme="light"] .hero-content p {
+  color: #4a3520;
+}
+
+[data-theme="light"] .secondary-action {
+  background: rgba(26, 13, 6, 0.07);
+  color: #4a3520;
+  outline-color: rgba(100, 65, 20, 0.35);
+}
+
+[data-theme="light"] .stats-band {
+  background: #ece6d8;
+  border-color: var(--line);
+}
+
+[data-theme="light"] .stats-band div {
+  background: linear-gradient(135deg, rgba(214, 176, 91, 0.12), rgba(0,0,0,0.02));
+}
+
+[data-theme="light"] .filter {
+  background: rgba(0, 0, 0, 0.04);
 }
 
 [data-theme="light"] .wine-card {
-  background: linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.01));
+  background: linear-gradient(180deg, rgba(255,255,255,0.7), rgba(255,255,255,0.4));
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.09);
 }
 
 [data-theme="light"] .wine-photo-wrap {
   background: linear-gradient(180deg, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.08) 100%);
-}
-
-[data-theme="light"] .section-heading::after {
-  background: var(--line);
 }
 
 [data-theme="light"] .cart-drawer {
@@ -65,6 +98,18 @@
 [data-theme="light"] .rating-card {
   background: var(--panel-soft);
   border-color: var(--line);
+}
+
+[data-theme="light"] .curation,
+[data-theme="light"] .ratings,
+[data-theme="light"] .pairings {
+  background: transparent;
+}
+
+[data-theme="light"] .pairing-chip {
+  background: rgba(0,0,0,0.06);
+  border-color: var(--line);
+  color: var(--ink);
 }
 
 * {
