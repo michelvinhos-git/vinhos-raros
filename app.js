@@ -382,6 +382,7 @@ function setupCart() {
 }
 
 let activeFilter = "Todos";
+let activeCountry = "";
 let searchQuery = "";
 
 function renderCatalog(filter, query) {
@@ -390,6 +391,9 @@ function renderCatalog(filter, query) {
   const grid = document.querySelector("[data-wine-grid]");
   if (!grid) return;
   let filtered = activeFilter === "Todos" ? wines : wines.filter((wine) => wine.type === activeFilter);
+  if (activeCountry) {
+    filtered = filtered.filter((wine) => wine.country === activeCountry);
+  }
   if (searchQuery.trim()) {
     const q = searchQuery.trim().toLowerCase();
     filtered = filtered.filter((wine) =>
@@ -433,6 +437,41 @@ function renderCatalog(filter, query) {
   });
 }
 
+function buildCountryNav() {
+  const container = document.getElementById("country-filters");
+  const separator = document.querySelector(".cat-separator");
+  if (!container) return;
+
+  const countries = [...new Set(wines.map((w) => w.country).filter(Boolean))].sort();
+
+  if (!countries.length) {
+    if (separator) separator.style.display = "none";
+    container.innerHTML = "";
+    return;
+  }
+
+  if (separator) separator.style.display = "";
+  container.innerHTML = countries
+    .map((c) => `<button class="cat-country" data-filter-country="${c}">${c}</button>`)
+    .join("");
+
+  container.querySelectorAll(".cat-country").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const chosen = btn.dataset.filterCountry;
+      if (activeCountry === chosen) {
+        activeCountry = "";
+        btn.classList.remove("active");
+      } else {
+        activeCountry = chosen;
+        container.querySelectorAll(".cat-country").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+      }
+      document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      renderCatalog();
+    });
+  });
+}
+
 function setupFilters() {
   document.querySelectorAll("[data-filter]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -465,6 +504,7 @@ async function init() {
   setupCart();
   renderCatalog();
   setupFilters();
+  buildCountryNav();
 }
 
 init();

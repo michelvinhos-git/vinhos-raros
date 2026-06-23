@@ -288,6 +288,53 @@
   border-bottom-color: var(--gold);
 }
 
+#country-filters {
+  display: contents;
+}
+
+.cat-separator {
+  width: 1px;
+  height: 20px;
+  background: var(--line);
+  flex-shrink: 0;
+  margin: 0 6px;
+}
+
+.cat-country {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #3a2810;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  cursor: pointer;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  font-family: inherit;
+}
+
+[data-theme="dark"] .cat-country {
+  color: #c2b89f;
+}
+
+.cat-country:hover,
+.cat-country.active {
+  color: #8b1537;
+  border-bottom-color: #8b1537;
+}
+
+[data-theme="dark"] .cat-country:hover,
+[data-theme="dark"] .cat-country.active {
+  color: #e07090;
+  border-bottom-color: #e07090;
+}
+
 /* ══════════════════════════════════════
    CARROSSEL HERO
 ══════════════════════════════════════ */
