@@ -14,35 +14,33 @@
 
 [data-theme="light"] {
   --ink: #1a0d06;
-  --muted: #6b5840;
-  --paper: #f5f0e8;
-  --panel: #ece6d8;
-  --panel-soft: #e2d9c8;
-  --line: rgba(100, 65, 20, 0.18);
-  --forest: #f0ead8;
+  --muted: #5a4530;
+  --paper: #ffffff;
+  --panel: #f2f2f2;
+  --panel-soft: #e8e8e8;
+  --line: rgba(0, 0, 0, 0.10);
+  --forest: #ffffff;
 }
 
 [data-theme="light"] body {
-  background:
-    radial-gradient(circle at top left, rgba(214, 176, 91, 0.18), transparent 34rem),
-    linear-gradient(180deg, #f0ead8 0%, var(--paper) 45%, #ede5d2 100%);
+  background: #ffffff;
   color: var(--ink);
 }
 
 [data-theme="light"] .topbar {
-  background: rgba(245, 240, 232, 0.92);
-  border-color: rgba(139, 90, 43, 0.16);
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.07);
 }
 
 [data-theme="light"] .nav-links {
-  color: #4a3520;
+  color: #3a2810;
 }
 
 [data-theme="light"] .hero-overlay {
   background:
-    linear-gradient(90deg, rgba(245,240,232,0.55), rgba(245,238,222,0.82)),
-    linear-gradient(0deg, rgba(240,232,215,0.72), transparent 50%);
+    linear-gradient(90deg, rgba(255,255,255,0.5), rgba(255,255,255,0.85)),
+    linear-gradient(0deg, rgba(255,255,255,0.75), transparent 50%);
 }
 
 [data-theme="light"] .hero-content {
@@ -50,22 +48,22 @@
 }
 
 [data-theme="light"] .hero-content p {
-  color: #4a3520;
+  color: #3a2810;
 }
 
 [data-theme="light"] .secondary-action {
-  background: rgba(26, 13, 6, 0.07);
-  color: #4a3520;
-  outline-color: rgba(100, 65, 20, 0.35);
+  background: rgba(0, 0, 0, 0.06);
+  color: #3a2810;
+  outline-color: rgba(0, 0, 0, 0.20);
 }
 
 [data-theme="light"] .stats-band {
-  background: #ece6d8;
-  border-color: var(--line);
+  background: #f2f2f2;
+  border-color: rgba(0,0,0,0.08);
 }
 
 [data-theme="light"] .stats-band div {
-  background: linear-gradient(135deg, rgba(214, 176, 91, 0.12), rgba(0,0,0,0.02));
+  background: linear-gradient(135deg, rgba(214, 176, 91, 0.10), rgba(255,255,255,0.5));
 }
 
 [data-theme="light"] .filter {
@@ -73,8 +71,9 @@
 }
 
 [data-theme="light"] .wine-card {
-  background: linear-gradient(180deg, rgba(255,255,255,0.7), rgba(255,255,255,0.4));
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.09);
+  background: #ffffff;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  border-color: rgba(0,0,0,0.08);
 }
 
 [data-theme="light"] .wine-photo-wrap {
