@@ -1270,3 +1270,176 @@ h2 {
     padding: 36px 16px 52px;
   }
 }
+
+/* ══════════════════════════════════════
+   CHECKOUT (dados do cliente)
+══════════════════════════════════════ */
+#checkout-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+#checkout-overlay.open {
+  display: flex;
+}
+
+.checkout-modal {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  width: 100%;
+  max-width: 540px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.checkout-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--line);
+}
+
+.checkout-head h2 {
+  margin: 0;
+  font-size: 1.3rem;
+  color: var(--ink);
+}
+
+.checkout-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1;
+  padding: 4px 8px;
+}
+
+.checkout-close:hover {
+  color: var(--ink);
+}
+
+.checkout-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 20px 22px;
+  overflow-y: auto;
+}
+
+.ck-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ck-full {
+  grid-column: 1 / -1;
+}
+
+.ck-field label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ck-field input,
+.ck-field select,
+.ck-field textarea {
+  background: var(--panel-soft);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.92rem;
+  padding: 10px 12px;
+  outline: none;
+  width: 100%;
+  resize: vertical;
+}
+
+.ck-field input:focus,
+.ck-field select:focus,
+.ck-field textarea:focus {
+  border-color: var(--gold);
+}
+
+.ck-error {
+  grid-column: 1 / -1;
+  color: #e05555;
+  font-size: 0.85rem;
+  margin: 0;
+  min-height: 1em;
+}
+
+.checkout-summary {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.checkout-summary strong {
+  color: var(--ink);
+}
+
+.ck-submit {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+}
+
+@media (max-width: 480px) {
+  .checkout-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ══════════════════════════════════════
+   BOTÃO FLUTUANTE WHATSAPP
+══════════════════════════════════════ */
+.whatsapp-fab {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 45;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #25d366;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.whatsapp-fab:hover {
+  transform: scale(1.08);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+body.cart-open .whatsapp-fab {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .whatsapp-fab {
+    right: 16px;
+    bottom: 16px;
+    width: 52px;
+    height: 52px;
+  }
+}

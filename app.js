@@ -20,9 +20,27 @@ fetch('/api/settings').then(r => r.json()).then(s => {
   document.documentElement.setAttribute('data-theme', s.theme || 'dark');
   applyBranding(s);
   applyTicker(s.ticker_text || '', parseInt(s.ticker_speed, 10) || 30);
+  setupWhatsappFab(s);
 }).catch(() => {
   document.documentElement.setAttribute('data-theme', 'dark');
 });
+
+function setupWhatsappFab(s) {
+  const number = ((s && s.whatsapp) || "").replace(/\D/g, "");
+  let fab = document.getElementById("whatsapp-fab");
+  if (!number) { if (fab) fab.remove(); return; }
+  if (!fab) {
+    fab = document.createElement("a");
+    fab.id = "whatsapp-fab";
+    fab.className = "whatsapp-fab";
+    fab.target = "_blank";
+    fab.rel = "noopener";
+    fab.setAttribute("aria-label", "Fale conosco no WhatsApp");
+    fab.innerHTML = `<svg viewBox="0 0 32 32" width="30" height="30" fill="currentColor" aria-hidden="true"><path d="M16.04 4C9.42 4 4.04 9.38 4.04 16c0 2.12.55 4.16 1.6 5.98L4 28l6.18-1.62A11.9 11.9 0 0016.04 28C22.66 28 28.04 22.62 28.04 16S22.66 4 16.04 4zm0 21.82c-1.86 0-3.68-.5-5.27-1.45l-.38-.22-3.67.96.98-3.58-.25-.37A9.78 9.78 0 016.22 16c0-5.42 4.4-9.82 9.82-9.82 5.42 0 9.82 4.4 9.82 9.82 0 5.42-4.4 9.82-9.82 9.82zm5.39-7.35c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.65.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.64-2.05-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.06 2.87 1.21 3.07.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.75-.71 2-1.4.25-.69.25-1.28.17-1.4-.07-.13-.27-.2-.57-.35z"/></svg>`;
+    document.body.appendChild(fab);
+  }
+  fab.href = `https://wa.me/${number}`;
+}
 
 function applyTicker(text, speed) {
   const inner = document.getElementById('ticker-inner');
@@ -179,6 +197,87 @@ function renderCart() {
     b.addEventListener("click", () => removeFromCart(b.dataset.remove)));
 }
 
+/* ── Checkout: dados do cliente + WhatsApp ── */
+const PAYMENT_METHODS = ["Pix", "Cartão de crédito", "Cartão de débito", "Dinheiro"];
+const CUSTOMER_KEY = "vinhosRarosCliente";
+
+function loadCustomer() {
+  try { return JSON.parse(localStorage.getItem(CUSTOMER_KEY) || "{}"); }
+  catch { return {}; }
+}
+
+function ensureCheckoutModal() {
+  if (document.getElementById("checkout-overlay")) return;
+  const c = loadCustomer();
+  const overlay = document.createElement("div");
+  overlay.id = "checkout-overlay";
+  overlay.innerHTML = `
+    <div class="checkout-modal" role="dialog" aria-modal="true" aria-labelledby="checkout-title">
+      <div class="checkout-head">
+        <h2 id="checkout-title">Finalizar pedido</h2>
+        <button type="button" class="checkout-close" aria-label="Fechar">✕</button>
+      </div>
+      <form class="checkout-form" id="checkout-form" novalidate>
+        <div class="ck-field ck-full">
+          <label for="ck-name">Nome completo *</label>
+          <input id="ck-name" type="text" required value="${esc(c.name)}" placeholder="Seu nome" />
+        </div>
+        <div class="ck-field ck-full">
+          <label for="ck-phone">Telefone / WhatsApp *</label>
+          <input id="ck-phone" type="tel" required value="${esc(c.phone)}" placeholder="(11) 99999-9999" />
+        </div>
+        <div class="ck-field ck-full">
+          <label for="ck-street">Endereço (rua / av.) *</label>
+          <input id="ck-street" type="text" required value="${esc(c.street)}" placeholder="Rua Exemplo" />
+        </div>
+        <div class="ck-field">
+          <label for="ck-number">Número *</label>
+          <input id="ck-number" type="text" required value="${esc(c.number)}" placeholder="123" />
+        </div>
+        <div class="ck-field">
+          <label for="ck-complement">Complemento</label>
+          <input id="ck-complement" type="text" value="${esc(c.complement)}" placeholder="Apto, bloco..." />
+        </div>
+        <div class="ck-field">
+          <label for="ck-district">Bairro *</label>
+          <input id="ck-district" type="text" required value="${esc(c.district)}" placeholder="Centro" />
+        </div>
+        <div class="ck-field">
+          <label for="ck-city">Cidade *</label>
+          <input id="ck-city" type="text" required value="${esc(c.city)}" placeholder="São Paulo" />
+        </div>
+        <div class="ck-field">
+          <label for="ck-cep">CEP</label>
+          <input id="ck-cep" type="text" value="${esc(c.cep)}" placeholder="00000-000" />
+        </div>
+        <div class="ck-field">
+          <label for="ck-payment">Forma de pagamento *</label>
+          <select id="ck-payment" required>
+            ${PAYMENT_METHODS.map((m) => `<option value="${esc(m)}" ${c.payment === m ? "selected" : ""}>${esc(m)}</option>`).join("")}
+          </select>
+        </div>
+        <div class="ck-field ck-full">
+          <label for="ck-notes">Observações</label>
+          <textarea id="ck-notes" rows="2" placeholder="Ex: troco para R$ 200, ponto de referência...">${esc(c.notes)}</textarea>
+        </div>
+        <p class="ck-error" id="ck-error"></p>
+        <div class="checkout-summary" id="ck-summary"></div>
+        <button type="submit" class="checkout ck-submit">Enviar pedido pelo WhatsApp</button>
+      </form>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) closeCheckout(); });
+  overlay.querySelector(".checkout-close").addEventListener("click", closeCheckout);
+  overlay.querySelector("#checkout-form").addEventListener("submit", submitCheckout);
+}
+
+function closeCheckout() {
+  const o = document.getElementById("checkout-overlay");
+  if (o) o.classList.remove("open");
+}
+
 function checkout() {
   if (!cart.length) return;
 
@@ -187,6 +286,52 @@ function checkout() {
     alert("O WhatsApp para pedidos ainda não foi configurado. Configure no painel administrativo.");
     return;
   }
+
+  ensureCheckoutModal();
+
+  let total = 0;
+  cart.forEach((it) => { const w = wines.find((x) => x.id === it.id); if (w) total += w.price * it.qty; });
+  const count = cart.reduce((s, i) => s + i.qty, 0);
+  const summary = document.getElementById("ck-summary");
+  if (summary) summary.innerHTML = `${count} ${count === 1 ? "item" : "itens"} · <strong>${currency.format(total)}</strong>`;
+  document.getElementById("ck-error").textContent = "";
+
+  document.getElementById("checkout-overlay").classList.add("open");
+  document.body.classList.remove("cart-open");
+  setTimeout(() => document.getElementById("ck-name")?.focus(), 50);
+}
+
+function submitCheckout(e) {
+  e.preventDefault();
+  const val = (id) => (document.getElementById(id)?.value || "").trim();
+  const customer = {
+    name: val("ck-name"),
+    phone: val("ck-phone"),
+    street: val("ck-street"),
+    number: val("ck-number"),
+    complement: val("ck-complement"),
+    district: val("ck-district"),
+    city: val("ck-city"),
+    cep: val("ck-cep"),
+    payment: val("ck-payment"),
+    notes: val("ck-notes"),
+  };
+
+  const required = [
+    ["name", "Nome"], ["phone", "Telefone"], ["street", "Endereço"],
+    ["number", "Número"], ["district", "Bairro"], ["city", "Cidade"]
+  ];
+  const missing = required.filter(([k]) => !customer[k]).map(([, label]) => label);
+  const errEl = document.getElementById("ck-error");
+  if (missing.length) {
+    errEl.textContent = "Preencha: " + missing.join(", ") + ".";
+    return;
+  }
+
+  const number = (siteSettings.whatsapp || "").replace(/\D/g, "");
+  if (!number) { errEl.textContent = "WhatsApp não configurado."; return; }
+
+  try { localStorage.setItem(CUSTOMER_KEY, JSON.stringify(customer)); } catch {}
 
   let total = 0;
   const lines = cart
@@ -202,8 +347,29 @@ function checkout() {
   if (!lines.length) return;
 
   const siteName = siteSettings.site_name || "Vinhos Raros";
-  const msg = `Olá! Gostaria de finalizar meu pedido na ${siteName}:\n\n${lines.join("\n")}\n\n*Total: ${currency.format(total)}*`;
+  const addr = `${customer.street}, ${customer.number}` +
+    `${customer.complement ? " - " + customer.complement : ""}` +
+    ` - ${customer.district}, ${customer.city}` +
+    `${customer.cep ? " - CEP " + customer.cep : ""}`;
+
+  const parts = [
+    `*Novo pedido — ${siteName}*`,
+    ``,
+    `*Itens:*`,
+    lines.join("\n"),
+    ``,
+    `*Total: ${currency.format(total)}*`,
+    ``,
+    `*Cliente:* ${customer.name}`,
+    `*Telefone:* ${customer.phone}`,
+    `*Entrega:* ${addr}`,
+    `*Pagamento:* ${customer.payment}`,
+  ];
+  if (customer.notes) parts.push(`*Obs.:* ${customer.notes}`);
+
+  const msg = parts.join("\n");
   window.open(`https://wa.me/${number}?text=${encodeURIComponent(msg)}`, "_blank");
+  closeCheckout();
 }
 
 function setupCart() {
